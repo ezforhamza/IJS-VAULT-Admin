@@ -1,13 +1,13 @@
-import { http, HttpResponse } from 'msw';
+import { HttpResponse, http } from "msw";
 
-import type { LegalPage } from '@/types/legal';
+import type { LegalPage } from "@/types/legal";
 
 const legalContent: Record<string, LegalPage> = {
-  terms: {
-    slug: 'terms',
-    title: 'Terms of Service',
-    lastUpdated: '2025-01-15',
-    content: `
+	terms: {
+		slug: "terms",
+		title: "Terms of Service",
+		lastUpdated: "2025-01-15",
+		content: `
       <div class="space-y-6">
         <section>
           <h2 class="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
@@ -69,12 +69,12 @@ const legalContent: Record<string, LegalPage> = {
         </section>
       </div>
     `,
-  },
-  privacy: {
-    slug: 'privacy',
-    title: 'Privacy Policy',
-    lastUpdated: '2025-01-15',
-    content: `
+	},
+	privacy: {
+		slug: "privacy",
+		title: "Privacy Policy",
+		lastUpdated: "2025-01-15",
+		content: `
       <div class="space-y-6">
         <section>
           <h2 class="text-2xl font-semibold mb-4">1. Information We Collect</h2>
@@ -169,176 +169,47 @@ const legalContent: Record<string, LegalPage> = {
         </section>
       </div>
     `,
-  },
-  cookies: {
-    slug: 'cookies',
-    title: 'Cookie Policy',
-    lastUpdated: '2025-01-15',
-    content: `
-      <div class="space-y-6">
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">1. What Are Cookies</h2>
-          <p class="text-muted-foreground leading-relaxed">
-            Cookies are small text files that are placed on your device when you visit our website. They are widely used to make websites work more efficiently and provide information to website owners.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">2. How We Use Cookies</h2>
-          <p class="text-muted-foreground leading-relaxed mb-3">
-            We use cookies for the following purposes:
-          </p>
-          <ul class="list-disc list-inside space-y-2 text-muted-foreground ml-4">
-            <li><strong>Essential Cookies:</strong> Required for the operation of our website (e.g., authentication, security)</li>
-            <li><strong>Functionality Cookies:</strong> Remember your preferences and settings</li>
-            <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our website</li>
-            <li><strong>Security Cookies:</strong> Detect and prevent fraudulent activity</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">3. Types of Cookies We Use</h2>
-
-          <div class="space-y-4">
-            <div class="border-l-4 border-primary pl-4">
-              <h3 class="text-lg font-semibold mb-2">Session Cookies</h3>
-              <p class="text-muted-foreground leading-relaxed">
-                These are temporary cookies that expire when you close your browser. They help us maintain your session and keep you logged in.
-              </p>
-            </div>
-
-            <div class="border-l-4 border-primary pl-4">
-              <h3 class="text-lg font-semibold mb-2">Persistent Cookies</h3>
-              <p class="text-muted-foreground leading-relaxed">
-                These cookies remain on your device for a set period or until you delete them. They help us remember your preferences across sessions.
-              </p>
-            </div>
-
-            <div class="border-l-4 border-primary pl-4">
-              <h3 class="text-lg font-semibold mb-2">First-Party Cookies</h3>
-              <p class="text-muted-foreground leading-relaxed">
-                Set by IJS VAULT directly to provide core functionality and improve your experience.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">4. Cookie Details</h2>
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="border-b">
-                  <th class="text-left py-3 px-4 font-semibold">Cookie Name</th>
-                  <th class="text-left py-3 px-4 font-semibold">Purpose</th>
-                  <th class="text-left py-3 px-4 font-semibold">Duration</th>
-                </tr>
-              </thead>
-              <tbody class="text-muted-foreground">
-                <tr class="border-b">
-                  <td class="py-3 px-4 font-mono text-sm">auth_token</td>
-                  <td class="py-3 px-4">Authentication and session management</td>
-                  <td class="py-3 px-4">30 days</td>
-                </tr>
-                <tr class="border-b">
-                  <td class="py-3 px-4 font-mono text-sm">user_prefs</td>
-                  <td class="py-3 px-4">Store user preferences (theme, language)</td>
-                  <td class="py-3 px-4">1 year</td>
-                </tr>
-                <tr class="border-b">
-                  <td class="py-3 px-4 font-mono text-sm">session_id</td>
-                  <td class="py-3 px-4">Track user session</td>
-                  <td class="py-3 px-4">Session</td>
-                </tr>
-                <tr class="border-b">
-                  <td class="py-3 px-4 font-mono text-sm">analytics</td>
-                  <td class="py-3 px-4">Usage analytics and performance monitoring</td>
-                  <td class="py-3 px-4">2 years</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">5. Managing Cookies</h2>
-          <p class="text-muted-foreground leading-relaxed mb-3">
-            You can control and manage cookies in several ways:
-          </p>
-          <ul class="list-disc list-inside space-y-2 text-muted-foreground ml-4">
-            <li>Most browsers allow you to refuse or accept cookies</li>
-            <li>You can delete cookies that have already been set</li>
-            <li>You can set your browser to notify you when cookies are being set</li>
-            <li>Browser settings are usually found in the "Options" or "Preferences" menu</li>
-          </ul>
-          <p class="text-muted-foreground leading-relaxed mt-3">
-            Please note that disabling certain cookies may affect the functionality of our Service.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">6. Third-Party Cookies</h2>
-          <p class="text-muted-foreground leading-relaxed">
-            We do not use third-party cookies for advertising or tracking purposes. Any third-party services we use (such as analytics) are configured to respect your privacy and comply with applicable data protection laws.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">7. Updates to This Policy</h2>
-          <p class="text-muted-foreground leading-relaxed">
-            We may update this Cookie Policy from time to time to reflect changes in technology, legislation, or our practices. The "Last Updated" date at the top of this policy indicates when it was last revised.
-          </p>
-        </section>
-
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">8. Contact Us</h2>
-          <p class="text-muted-foreground leading-relaxed">
-            If you have any questions about our use of cookies, please contact us at <a href="mailto:privacy@ijsvault.com" class="text-primary hover:underline">privacy@ijsvault.com</a>
-          </p>
-        </section>
-      </div>
-    `,
-  },
+	},
 };
 
 export const getLegalHandlers = [
-  http.get('/api/legal/:slug', ({ params }) => {
-    const { slug } = params;
-    const page = legalContent[slug as string];
+	http.get("/api/legal/:slug", ({ params }) => {
+		const { slug } = params;
+		const page = legalContent[slug as string];
 
-    if (!page) {
-      return new HttpResponse(null, { status: 404 });
-    }
+		if (!page) {
+			return new HttpResponse(null, { status: 404 });
+		}
 
-    return HttpResponse.json({
-      status: 0,
-      message: '',
-      data: page,
-    });
-  }),
+		return HttpResponse.json({
+			status: 0,
+			message: "",
+			data: page,
+		});
+	}),
 
-  http.put('/api/legal/:slug', async ({ params, request }) => {
-    const { slug } = params;
-    const page = legalContent[slug as string];
+	http.put("/api/legal/:slug", async ({ params, request }) => {
+		const { slug } = params;
+		const page = legalContent[slug as string];
 
-    if (!page) {
-      return new HttpResponse(null, { status: 404 });
-    }
+		if (!page) {
+			return new HttpResponse(null, { status: 404 });
+		}
 
-    const body = await request.json() as { title: string; content: string };
+		const body = (await request.json()) as { title: string; content: string };
 
-    // Update the mock data
-    legalContent[slug as string] = {
-      ...page,
-      title: body.title,
-      content: body.content,
-      lastUpdated: new Date().toISOString().split('T')[0],
-    };
+		// Update the mock data
+		legalContent[slug as string] = {
+			...page,
+			title: body.title,
+			content: body.content,
+			lastUpdated: new Date().toISOString().split("T")[0],
+		};
 
-    return HttpResponse.json({
-      status: 0,
-      message: 'Legal page updated successfully',
-      data: legalContent[slug as string],
-    });
-  }),
+		return HttpResponse.json({
+			status: 0,
+			message: "Legal page updated successfully",
+			data: legalContent[slug as string],
+		});
+	}),
 ];

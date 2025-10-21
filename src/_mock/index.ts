@@ -1,7 +1,5 @@
 import { setupWorker } from "msw/browser";
 import { mockTokenExpired } from "./handlers/_demo";
-import { menuList } from "./handlers/_menu";
-import { signIn, userList } from "./handlers/_user";
 import {
 	bulkActivateUsers,
 	bulkDeleteUsers,
@@ -17,6 +15,9 @@ import {
 	logoutSession,
 } from "./handlers/_ijsUsers";
 import { getLegalHandlers } from "./handlers/_legal";
+import { menuList } from "./handlers/_menu";
+import { getNotificationHandlers } from "./handlers/_notifications";
+import { signIn, userList } from "./handlers/_user";
 
 const handlers = [
 	signIn,
@@ -39,6 +40,8 @@ const handlers = [
 	bulkLogoutSessions,
 	// Legal Pages
 	...getLegalHandlers,
+	// Notifications
+	...getNotificationHandlers,
 ];
 const worker = setupWorker(...handlers);
 

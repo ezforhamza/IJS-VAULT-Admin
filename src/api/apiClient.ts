@@ -1,10 +1,10 @@
-import { GLOBAL_CONFIG } from "@/global-config";
-import { t } from "@/locales/i18n";
-import userStore from "@/store/userStore";
-import axios, { type AxiosRequestConfig, type AxiosError, type AxiosResponse } from "axios";
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { toast } from "sonner";
 import type { Result } from "#/api";
 import { ResultStatus } from "#/enum";
+import { GLOBAL_CONFIG } from "@/global-config";
+import { t } from "@/locales/i18n";
+import userStore from "@/store/userStore";
 
 const axiosInstance = axios.create({
 	baseURL: GLOBAL_CONFIG.apiBaseUrl,
@@ -53,8 +53,47 @@ class APIClient {
 	delete<T = unknown>(config: AxiosRequestConfig): Promise<T> {
 		return this.request<T>({ ...config, method: "DELETE" });
 	}
-	request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
-		return axiosInstance.request<any, T>(config);
+	async request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
+		const maxRetries = 3;
+		let retryCount = 0;
+
+		while (retryCount < maxRetries) {
+			try {
+				return await axiosInstance.request<any, T>(config);
+			} catch (error: any) {
+				// Check if it's a 500 error that might be MSW-related
+				if (error?.response?.status === 500 || error?.code === "ERR_BAD_RESPONSE") {
+					retryCount++;
+
+					if (retryCount < maxRetries) {
+						console.warn(
+							`API request failed (attempt ${retryCount}/${maxRetries}), retrying in ${retryCount * 1000}ms...`,
+						);
+
+						// Wait before retrying (exponential backoff)
+						await new Promise((resolve) => setTimeout(resolve, retryCount * 1000));
+
+						// Try to restart MSW if available
+						if (typeof window !== "undefined" && (window as any).mswWorker) {
+							try {
+								console.log("Attempting to restart MSW...");
+								await (window as any).mswWorker.start();
+							} catch (mswError) {
+								console.warn("Failed to restart MSW:", mswError);
+							}
+						}
+
+						continue;
+					}
+				}
+
+				// If we've exhausted retries or it's not a retryable error, throw it
+				throw error;
+			}
+		}
+
+		// This should never be reached, but TypeScript requires it
+		throw new Error("Max retries exceeded");
 	}
 }
 

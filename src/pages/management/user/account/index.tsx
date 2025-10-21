@@ -1,7 +1,6 @@
 import { Icon } from "@/components/icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 import GeneralTab from "./general-tab";
-import NotificationsTab from "./notifications-tab";
 import SecurityTab from "./security-tab";
 
 function UserAccount() {
@@ -16,12 +15,6 @@ function UserAccount() {
 				</TabsTrigger>
 				<TabsTrigger value="2">
 					<div className="flex items-center">
-						<Icon icon="solar:bell-bing-bold-duotone" size={24} className="mr-2" />
-						<span>Notifications</span>
-					</div>
-				</TabsTrigger>
-				<TabsTrigger value="3">
-					<div className="flex items-center">
 						<Icon icon="solar:key-minimalistic-square-3-bold-duotone" size={24} className="mr-2" />
 						<span>Security</span>
 					</div>
@@ -31,9 +24,6 @@ function UserAccount() {
 				<GeneralTab />
 			</TabsContent>
 			<TabsContent value="2">
-				<NotificationsTab />
-			</TabsContent>
-			<TabsContent value="3">
 				<SecurityTab />
 			</TabsContent>
 		</Tabs>

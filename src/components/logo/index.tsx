@@ -1,6 +1,6 @@
-import { cn } from "@/utils";
 import { NavLink } from "react-router";
 import logoSvg from "@/assets/icons/logo.svg";
+import { cn } from "@/utils";
 
 interface Props {
 	size?: number | string;

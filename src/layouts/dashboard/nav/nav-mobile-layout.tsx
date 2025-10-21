@@ -1,3 +1,4 @@
+import { NavLink } from "react-router";
 import { Icon } from "@/components/icon";
 import Logo from "@/components/logo";
 import { NavVertical } from "@/components/nav";
@@ -6,7 +7,6 @@ import { GLOBAL_CONFIG } from "@/global-config";
 import { Button } from "@/ui/button";
 import { ScrollArea } from "@/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/ui/sheet";
-import { NavLink } from "react-router";
 
 export function NavMobileLayout({ data }: NavProps) {
 	return (

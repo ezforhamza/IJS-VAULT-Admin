@@ -1,10 +1,10 @@
 export interface LegalPage {
-  slug: string;
-  title: string;
-  content: string;
-  lastUpdated: string;
+	slug: string;
+	title: string;
+	content: string;
+	lastUpdated: string;
 }
 
 export type LegalPageResponse = LegalPage;
 
-export type LegalPageSlug = 'terms' | 'privacy' | 'cookies';
+export type LegalPageSlug = "terms" | "privacy";

@@ -1,10 +1,10 @@
+import { faker } from "@faker-js/faker";
+import { Timeline } from "antd";
 import { Icon } from "@/components/icon";
 import { useUserInfo } from "@/store/userStore";
 import { themeVars } from "@/theme/theme.css";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
 import { Text } from "@/ui/typography";
-import { faker } from "@faker-js/faker";
-import { Timeline } from "antd";
 
 export default function ProfileTab() {
 	const { username } = useUserInfo();

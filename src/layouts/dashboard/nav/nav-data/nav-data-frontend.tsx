@@ -4,17 +4,12 @@ import type { NavProps } from "@/components/nav";
 export const frontendNavData: NavProps["data"] = [
 	// Dashboard section
 	{
-		name: "sys.nav.dashboard",
+		name: "Dashboard",
 		items: [
 			{
-				title: "sys.nav.workbench",
-				path: "/workbench",
-				icon: <Icon icon="local:ic-workbench" size="24" />,
-			},
-			{
-				title: "sys.nav.analysis",
-				path: "/analysis",
-				icon: <Icon icon="local:ic-analysis" size="24" />,
+				title: "Dashboard",
+				path: "/dashboard",
+				icon: <Icon icon="solar:widget-outline" size="24" />,
 			},
 		],
 	},
@@ -34,6 +29,11 @@ export const frontendNavData: NavProps["data"] = [
 				icon: <Icon icon="solar:tablet-outline" size="24" />,
 			},
 			{
+				title: "Notifications",
+				path: "/notifications",
+				icon: <Icon icon="solar:bell-bold" size="24" />,
+			},
+			{
 				title: "Legal Pages",
 				path: "/legal",
 				icon: <Icon icon="solar:documents-outline" size="24" />,
@@ -45,10 +45,6 @@ export const frontendNavData: NavProps["data"] = [
 					{
 						title: "Privacy Policy",
 						path: "/legal/privacy",
-					},
-					{
-						title: "Cookie Policy",
-						path: "/legal/cookies",
 					},
 				],
 			},

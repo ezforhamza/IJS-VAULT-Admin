@@ -1,5 +1,5 @@
-import LegalPage from '../components/legal-page';
+import LegalPage from "../components/legal-page";
 
 export default function TermsPage() {
-  return <LegalPage slug="terms" />;
+	return <LegalPage slug="terms" />;
 }

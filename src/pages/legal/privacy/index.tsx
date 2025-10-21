@@ -1,5 +1,5 @@
-import LegalPage from '../components/legal-page';
+import LegalPage from "../components/legal-page";
 
 export default function PrivacyPage() {
-  return <LegalPage slug="privacy" />;
+	return <LegalPage slug="privacy" />;
 }

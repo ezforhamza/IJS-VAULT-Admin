@@ -5,8 +5,7 @@ import { Component } from "./utils";
 export function getFrontendDashboardRoutes(): RouteObject[] {
 	const frontendDashboardRoutes: RouteObject[] = [
 		// Dashboard routes
-		{ path: "workbench", element: Component("/pages/dashboard/workbench") },
-		{ path: "analysis", element: Component("/pages/dashboard/analysis") },
+		{ path: "dashboard", element: Component("/pages/dashboard") },
 
 		// Management routes
 		{
@@ -73,6 +72,9 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 			],
 		},
 
+		// Notifications
+		{ path: "notifications", element: Component("/pages/notifications") },
+
 		// Legal Pages
 		{
 			path: "legal",
@@ -82,8 +84,6 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 				{ path: "terms/edit", element: Component("/pages/legal/terms/edit") },
 				{ path: "privacy", element: Component("/pages/legal/privacy") },
 				{ path: "privacy/edit", element: Component("/pages/legal/privacy/edit") },
-				{ path: "cookies", element: Component("/pages/legal/cookies") },
-				{ path: "cookies/edit", element: Component("/pages/legal/cookies/edit") },
 			],
 		},
 	];

@@ -287,10 +287,10 @@ export const getAllSessions = http.get(`/api${API_ENDPOINTS.SESSIONS.LIST}`, ({ 
 		return {
 			...session,
 			user: {
-				id: user?.id || '',
-				username: user?.username || 'Unknown',
-				email: user?.email || '',
-				avatar: user?.avatar || '',
+				id: user?.id || "",
+				username: user?.username || "Unknown",
+				email: user?.email || "",
+				avatar: user?.avatar || "",
 			},
 		};
 	});

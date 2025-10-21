@@ -1,15 +1,13 @@
+import { faker } from "@faker-js/faker";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { UploadAvatar } from "@/components/upload";
 import { useUserInfo } from "@/store/userStore";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardFooter } from "@/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/ui/form";
 import { Input } from "@/ui/input";
-import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
-import { Text } from "@/ui/typography";
-import { faker } from "@faker-js/faker";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 type FieldType = {
 	name?: string;
@@ -45,12 +43,7 @@ export default function GeneralTab() {
 				<Card className="flex-col items-center px-6! pb-10! pt-20!">
 					<UploadAvatar defaultAvatar={avatar} />
 
-					<div className="flex items-center py-6 gap-2 w-40">
-						<Text variant="body1">Public Profile</Text>
-						<Switch />
-					</div>
-
-					<Button variant="destructive" className="w-40">
+					<Button variant="destructive" className="w-40 mt-6">
 						Delete User
 					</Button>
 				</Card>

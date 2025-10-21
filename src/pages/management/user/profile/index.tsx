@@ -1,10 +1,10 @@
+import type { CSSProperties } from "react";
 import bannerImage from "@/assets/images/background/banner-1.png";
 import { Icon } from "@/components/icon";
 import { useUserInfo } from "@/store/userStore";
 import { themeVars } from "@/theme/theme.css";
 import { Avatar, AvatarImage } from "@/ui/avatar";
 import { Text, Title } from "@/ui/typography";
-import type { CSSProperties } from "react";
 import ProfileTab from "./profile-tab";
 
 function UserProfile() {
