@@ -2,10 +2,9 @@
  * User Detail Page
  */
 
-import { useParams } from "react-router-dom";
 import { Icon } from "@/components/icon";
 import { useUserDetail } from "@/hooks/use-users";
-import { useRouter } from "@/routes/hooks";
+import { useParams, useRouter } from "@/routes/hooks";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader } from "@/ui/card";
@@ -14,7 +13,7 @@ import { fNumber } from "@/utils/format-number";
 import { SessionsSection } from "./components/sessions-section";
 
 export default function UserDetailPage() {
-	const { id } = useParams<{ id: string }>();
+	const { id } = useParams();
 	const { push } = useRouter();
 	const { data, isLoading, error } = useUserDetail(id || "");
 
