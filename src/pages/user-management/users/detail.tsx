@@ -3,12 +3,12 @@
  */
 
 import { Icon } from "@/components/icon";
+import { UserAvatar } from "@/components/user-avatar";
 import { useUserDetail } from "@/hooks/use-users";
 import { useParams, useRouter } from "@/routes/hooks";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader } from "@/ui/card";
-import { fNumber } from "@/utils/format-number";
 
 import { SessionsSection } from "./components/sessions-section";
 
@@ -77,13 +77,18 @@ export default function UserDetailPage() {
 						</CardHeader>
 						<CardContent>
 							<div className="flex flex-col gap-6 sm:flex-row">
-								<img src={user.avatar} alt={user.username} className="h-24 w-24 rounded-full" />
+								<UserAvatar
+									src={user.image || user.avatar}
+									name={user.fullName || user.username}
+									email={user.email}
+									size="lg"
+								/>
 
 								<div className="flex-1 space-y-4">
 									<div className="grid gap-4 sm:grid-cols-2">
 										<div>
-											<p className="text-xs text-text-secondary">Username</p>
-											<p className="font-medium">{user.username}</p>
+											<p className="text-xs text-text-secondary">Name</p>
+											<p className="font-medium">{user.fullName || user.username}</p>
 										</div>
 										<div>
 											<p className="text-xs text-text-secondary">Email</p>
@@ -108,7 +113,7 @@ export default function UserDetailPage() {
 										</div>
 										<div>
 											<p className="text-xs text-text-secondary">Last Login</p>
-											<p className="text-sm">{formatDate(user.lastLogin)}</p>
+											<p className="text-sm">{formatDate(user.lastLoginAt || user.lastLogin || user.createdAt)}</p>
 										</div>
 									</div>
 								</div>
@@ -130,17 +135,17 @@ export default function UserDetailPage() {
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
 									<Icon icon="solar:folder-outline" size={20} className="text-text-secondary" />
-									<span className="text-sm">Categories</span>
+									<span className="text-sm">Folders</span>
 								</div>
-								<span className="font-semibold">{user.categoriesCount}</span>
+								<span className="font-semibold">{data.vaultStats?.folders || user.folders || 0}</span>
 							</div>
 
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2">
-									<Icon icon="solar:folder-2-outline" size={20} className="text-text-secondary" />
-									<span className="text-sm">Subcategories</span>
+									<Icon icon="solar:document-outline" size={20} className="text-text-secondary" />
+									<span className="text-sm">Files</span>
 								</div>
-								<span className="font-semibold">{user.subcategoriesCount}</span>
+								<span className="font-semibold">{data.vaultStats?.files || user.files || 0}</span>
 							</div>
 
 							<div className="flex items-center justify-between">
@@ -148,7 +153,19 @@ export default function UserDetailPage() {
 									<Icon icon="solar:database-outline" size={20} className="text-text-secondary" />
 									<span className="text-sm">Storage Used</span>
 								</div>
-								<span className="font-semibold">{fNumber(user.storageUsed)} MB</span>
+								<span className="font-semibold">
+									{data.vaultStats?.storageUsedFormatted || user.storageUsedFormatted || "0 Bytes"}
+								</span>
+							</div>
+
+							<div className="flex items-center justify-between">
+								<div className="flex items-center gap-2">
+									<Icon icon="solar:server-outline" size={20} className="text-text-secondary" />
+									<span className="text-sm">Storage Limit</span>
+								</div>
+								<span className="font-semibold">
+									{data.vaultStats?.storageLimitFormatted || user.storageLimitFormatted || "0 Bytes"}
+								</span>
 							</div>
 
 							<div className="flex items-center justify-between">

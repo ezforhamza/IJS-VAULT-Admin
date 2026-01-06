@@ -22,7 +22,7 @@ export default function LegalPageEditor({ slug }: LegalPageEditorProps) {
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ["legal", slug],
-		queryFn: () => legalService.getLegalPage(slug),
+		queryFn: () => legalService.getLegalPageByType(slug),
 	});
 
 	const [title, setTitle] = useState("");
@@ -31,8 +31,8 @@ export default function LegalPageEditor({ slug }: LegalPageEditorProps) {
 
 	// Initialize form when data loads
 	if (data && !isInitialized) {
-		setTitle(data.title);
-		setContent(data.content);
+		setTitle(data.page.title);
+		setContent(data.page.content);
 		setIsInitialized(true);
 	}
 
@@ -137,11 +137,11 @@ export default function LegalPageEditor({ slug }: LegalPageEditorProps) {
 					<div className="flex items-center justify-between">
 						<div>
 							<Title as="h3" className="text-xl font-semibold">
-								{data.title}
+								{data.page.title}
 							</Title>
 							<Text variant="body2" className="text-muted-foreground mt-1">
 								Last updated:{" "}
-								{new Date(data.lastUpdated).toLocaleDateString("en-US", {
+								{new Date(data.page.publishedAt).toLocaleDateString("en-US", {
 									year: "numeric",
 									month: "long",
 									day: "numeric",

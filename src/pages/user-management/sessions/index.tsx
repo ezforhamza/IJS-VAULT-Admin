@@ -15,8 +15,7 @@ import { SessionFilters } from "./components/session-filters";
 export default function SessionsPage() {
 	const filters = useIJSSessionFilters();
 	const selectedSessionIds = useIJSSelectedSessionIds();
-	const { setPage, setPageSize, toggleSessionSelection, setSelectedSessionIds, clearSelection } =
-		useIJSSessionActions();
+	const { setPage, setLimit, toggleSessionSelection, setSelectedSessionIds, clearSelection } = useIJSSessionActions();
 
 	const { data, isLoading } = useSessionsList(filters);
 
@@ -66,13 +65,20 @@ export default function SessionsPage() {
 						dataSource={data?.sessions || []}
 						pagination={{
 							current: filters.page,
-							pageSize: filters.pageSize,
+							pageSize: filters.limit,
 							total: data?.total || 0,
 							showSizeChanger: true,
-							showTotal: (total) => `Total ${total} active sessions`,
+							pageSizeOptions: ["10", "20", "50", "100"],
+							showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} active sessions`,
 							onChange: (page, pageSize) => {
 								setPage(page);
-								setPageSize(pageSize);
+								if (pageSize !== filters.limit) {
+									setLimit(pageSize);
+								}
+							},
+							onShowSizeChange: (_current, size) => {
+								setLimit(size);
+								setPage(1);
 							},
 						}}
 						scroll={{ x: 1400 }}

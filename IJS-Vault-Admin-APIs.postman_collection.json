@@ -1,0 +1,687 @@
+{
+	"info": {
+		"name": "IJS Vault - Admin APIs",
+		"description": "Complete API collection for IJS Vault Admin Panel.\n\n## 🚀 Quick Start\n\n1. **Set Environment**: Choose `Production` or `Development` environment\n2. **Login**: Use admin credentials to login - tokens are automatically saved\n3. **Use APIs**: All endpoints inherit the `{{accessToken}}` automatically\n\n## 🔐 Authentication\n\nAll admin endpoints require `Bearer {{accessToken}}` which is automatically set after login.\n\n**Admin Credentials:**\n- Email: `admin@ijsvault.com`\n- Password: `Admin@123456`\n\n## 📍 Environments\n\n| Environment | Base URL |\n|-------------|----------|\n| Production | https://ijsvault.codecoytechnologies.live/v1 |\n| Development | http://localhost:3001/v1 |\n\n## 📁 API Sections\n\n- **Authentication**: Admin login with device tracking\n- **Dashboard**: Overview statistics\n- **User Management**: List, search, filter, suspend, activate users\n- **Session Management**: View and terminate user sessions\n- **Legal Pages**: Terms of Service, Privacy Policy (HTML content)\n- **Notifications**: Send to all or specific users\n- **Admin Activity**: Activity timeline and audit logs\n- **Settings**: Global settings and plan configuration\n\n## 💡 Tips\n\n- Tokens auto-refresh on login\n- All admin actions are logged to activity timeline\n- Use filters and pagination for large datasets",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001/v1",
+			"type": "string",
+			"description": "API Base URL - Change for different environments"
+		},
+		{
+			"key": "productionUrl",
+			"value": "https://ijsvault.codecoytechnologies.live/v1",
+			"type": "string",
+			"description": "Production server URL"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string",
+			"description": "JWT Access Token - Auto-populated after login"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string",
+			"description": "JWT Refresh Token - Auto-populated after login"
+		},
+		{
+			"key": "adminId",
+			"value": "",
+			"type": "string",
+			"description": "Current admin user ID - Auto-populated after login"
+		},
+		{
+			"key": "testUserId",
+			"value": "",
+			"type": "string",
+			"description": "Test user ID for user management operations"
+		},
+		{
+			"key": "sessionId",
+			"value": "",
+			"type": "string",
+			"description": "Session ID for session management operations"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": ["// Pre-request script runs before every request"]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-save tokens from auth responses",
+					"if (pm.response.code === 200 || pm.response.code === 201) {",
+					"    try {",
+					"        const jsonData = pm.response.json();",
+					"        if (jsonData.data && jsonData.data.tokens) {",
+					"            if (jsonData.data.tokens.access) {",
+					"                pm.collectionVariables.set('accessToken', jsonData.data.tokens.access.token);",
+					"                console.log('✅ Access token saved');",
+					"            }",
+					"            if (jsonData.data.tokens.refresh) {",
+					"                pm.collectionVariables.set('refreshToken', jsonData.data.tokens.refresh.token);",
+					"                console.log('✅ Refresh token saved');",
+					"            }",
+					"        }",
+					"        if (jsonData.data && jsonData.data.user && jsonData.data.user.id) {",
+					"            pm.collectionVariables.set('adminId', jsonData.data.user.id);",
+					"            console.log('✅ Admin ID saved');",
+					"        }",
+					"    } catch (e) {}",
+					"}"
+				]
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"description": "Admin authentication endpoints.\n\n**Admin Credentials:**\n- Email: `admin@ijsvault.com`\n- Password: `Admin@123456`\n\n**Features:**\n- Login with device tracking\n- Session creation on login\n- JWT-based authentication\n- Refresh token rotation",
+			"item": [
+				{
+					"name": "Admin Login",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": "{{baseUrl}}/auth/login",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@ijsvault.com\",\n  \"password\": \"Admin@123456\",\n  \"deviceType\": \"WEB\",\n  \"deviceName\": \"Admin Panel\",\n  \"deviceModel\": \"Chrome Browser\"\n}"
+						},
+						"description": "**Admin Login**\n\nAuthenticate admin user and get access tokens. Creates a session for tracking.\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `email` | string | Yes | Admin email address |\n| `password` | string | Yes | Admin password |\n| `deviceType` | string | No | Device type for session tracking |\n| `deviceName` | string | No | Device name (e.g., 'Admin Panel') |\n| `deviceModel` | string | No | Device model (e.g., 'Chrome Browser') |\n\n**deviceType Enum Values:**\n- `ANDROID` - Android device\n- `IOS` - iOS device\n- `WEB` - Web browser (default)\n- `HUAWEI` - Huawei device\n- `DESKTOP` - Desktop application\n- `UNKNOWN` - Unknown device type\n\n**Example Payloads:**\n\n**Web Login:**\n```json\n{\n  \"email\": \"admin@ijsvault.com\",\n  \"password\": \"Admin@123456\",\n  \"deviceType\": \"WEB\",\n  \"deviceName\": \"Admin Panel\",\n  \"deviceModel\": \"Chrome Browser\"\n}\n```\n\n**Mobile Login:**\n```json\n{\n  \"email\": \"admin@ijsvault.com\",\n  \"password\": \"Admin@123456\",\n  \"deviceType\": \"ANDROID\",\n  \"deviceName\": \"Samsung Galaxy\",\n  \"deviceModel\": \"SM-G998B\"\n}\n```\n\n**Minimal Login (no device info):**\n```json\n{\n  \"email\": \"admin@ijsvault.com\",\n  \"password\": \"Admin@123456\"\n}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"admin-id\",\n      \"fullName\": \"IJS Vault Admin\",\n      \"email\": \"admin@ijsvault.com\",\n      \"role\": \"admin\",\n      \"isEmailVerified\": true,\n      \"status\": \"active\"\n    },\n    \"tokens\": {\n      \"access\": { \"token\": \"...\", \"expires\": \"...\" },\n      \"refresh\": { \"token\": \"...\", \"expires\": \"...\" }\n    }\n  },\n  \"message\": \"Login successful\"\n}\n```\n\n**Error Responses:**\n- `401`: Incorrect email or password\n- `403`: Account suspended or inactive"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": "{{baseUrl}}/auth/logout",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"description": "**Admin Logout**\n\nInvalidate refresh token, terminate session, and logout.\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refreshToken` | string | Yes | The refresh token to invalidate |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": { \"loggedOut\": true },\n  \"message\": \"Logged out successfully\"\n}\n```\n\n**What Happens:**\n- Refresh token is removed from database\n- Session is terminated\n- Token becomes invalid immediately"
+					}
+				},
+				{
+					"name": "Refresh Tokens",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": "{{baseUrl}}/auth/refresh-tokens",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"description": "**Refresh Access Token**\n\nGet new access and refresh tokens using refresh token.\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refreshToken` | string | Yes | Valid refresh token |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"tokens\": {\n      \"access\": { \"token\": \"...\", \"expires\": \"...\" },\n      \"refresh\": { \"token\": \"...\", \"expires\": \"...\" }\n    }\n  },\n  \"message\": \"Tokens refreshed successfully\"\n}\n```"
+					}
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"description": "Dashboard statistics and overview endpoints.\n\n**Features:**\n- Total users count with status breakdown\n- Active sessions count\n- User status distribution\n- Sessions by device type",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/dashboard",
+						"description": "**Get Dashboard Statistics**\n\nRetrieve overview statistics for the admin dashboard.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"totalUsers\": 52,\n      \"activeUsers\": 45,\n      \"inactiveUsers\": 5,\n      \"suspendedUsers\": 2,\n      \"activeSessions\": 12,\n      \"userStatusDistribution\": [\n        { \"status\": \"active\", \"count\": 45 },\n        { \"status\": \"inactive\", \"count\": 5 },\n        { \"status\": \"suspended\", \"count\": 2 }\n      ],\n      \"sessionsByDevice\": [\n        { \"device\": \"WEB\", \"count\": 8 },\n        { \"device\": \"ANDROID\", \"count\": 3 },\n        { \"device\": \"IOS\", \"count\": 1 }\n      ]\n    }\n  },\n  \"message\": \"Dashboard statistics retrieved successfully\"\n}\n```\n\n**Response Fields:**\n- `totalUsers`: Total registered users\n- `activeUsers`: Users with status 'active'\n- `inactiveUsers`: Users with status 'inactive'\n- `suspendedUsers`: Users with status 'suspended'\n- `activeSessions`: Currently active login sessions\n- `userStatusDistribution`: Breakdown by status\n- `sessionsByDevice`: Breakdown by device type"
+					}
+				},
+				{
+					"name": "Get Platform Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/stats",
+						"description": "**Get Platform Statistics**\n\nRetrieve comprehensive platform statistics including users, sessions, items, and storage.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"users\": {\n        \"total\": 52,\n        \"active\": 45,\n        \"inactive\": 5,\n        \"suspended\": 2\n      },\n      \"sessions\": {\n        \"active\": 12\n      },\n      \"items\": {\n        \"total\": 150,\n        \"folders\": 45,\n        \"files\": 105\n      },\n      \"storage\": {\n        \"totalUsed\": 5368709120,\n        \"totalLimit\": 816043786240,\n        \"usagePercentage\": \"0.66\"\n      },\n      \"plans\": {\n        \"free\": 40,\n        \"basic\": 8,\n        \"premium\": 3,\n        \"enterprise\": 1\n      }\n    }\n  },\n  \"message\": \"Platform statistics retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Storage Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/storage/stats",
+						"description": "**Get Storage Statistics**\n\nRetrieve storage usage statistics with top users and breakdown by plan.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"topUsers\": [\n        {\n          \"id\": \"user-id\",\n          \"name\": \"John Doe\",\n          \"email\": \"john@example.com\",\n          \"storageUsed\": 5368709120,\n          \"storageLimit\": 16106127360,\n          \"usagePercentage\": \"33.33\",\n          \"plan\": \"free\"\n        }\n      ],\n      \"byPlan\": [\n        {\n          \"_id\": \"free\",\n          \"totalUsed\": 10737418240,\n          \"totalLimit\": 644245094400,\n          \"userCount\": 40\n        }\n      ]\n    }\n  },\n  \"message\": \"Storage statistics retrieved successfully\"\n}\n```"
+					}
+				}
+			]
+		},
+		{
+			"name": "User Management",
+			"description": "User management endpoints for admin panel.\n\n**Features:**\n- List users with pagination, filtering, and search\n- View detailed user information with sessions and vault stats\n- Update user status (active/inactive/suspended)\n- Suspend and activate users\n- Logout all user sessions\n- Export users data\n- Delete users\n\n**User Status Values:**\n- `active` - User can login and use the app\n- `inactive` - User account is deactivated\n- `suspended` - User is banned from the platform",
+			"item": [
+				{
+					"name": "Get Users List",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users?page=1&limit=10&status=active&search=john&sortBy=createdAt:desc",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users"],
+							"query": [
+								{ "key": "page", "value": "1", "description": "Page number (default: 1)" },
+								{ "key": "limit", "value": "10", "description": "Items per page (default: 10, max: 100)" },
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filter by status: active, inactive, suspended (optional)"
+								},
+								{
+									"key": "search",
+									"value": "john",
+									"description": "Search by name or email (optional)",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "createdAt:desc",
+									"description": "Sort field and order (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "**Get Users List**\n\nRetrieve paginated list of users with filtering and search options.\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `page` | number | No | Page number (default: 1) |\n| `limit` | number | No | Items per page (default: 10, max: 100) |\n| `status` | string | No | Filter by user status |\n| `search` | string | No | Search by name or email |\n| `sortBy` | string | No | Sort field and order |\n\n**status Enum Values:**\n- `active` - Active users\n- `inactive` - Inactive users\n- `suspended` - Suspended users\n\n**sortBy Format:** `field:order`\n- Fields: `createdAt`, `fullName`, `email`, `lastLoginAt`\n- Order: `asc` or `desc`\n- Example: `createdAt:desc`, `fullName:asc`\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"results\": [\n      {\n        \"id\": \"user-id\",\n        \"fullName\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"phone\": \"+1234567890\",\n        \"status\": \"active\",\n        \"isEmailVerified\": true,\n        \"lastLoginAt\": \"2026-01-06T12:00:00.000Z\",\n        \"createdAt\": \"2026-01-01T00:00:00.000Z\",\n        \"activeSessions\": 2,\n        \"storageUsed\": 5368709120,\n        \"storageLimit\": 16106127360,\n        \"storageUsedFormatted\": \"5 GB\",\n        \"storageLimitFormatted\": \"15 GB\",\n        \"files\": 25,\n        \"folders\": 10\n      }\n    ],\n    \"page\": 1,\n    \"limit\": 10,\n    \"totalPages\": 5,\n    \"totalResults\": 50\n  },\n  \"message\": \"Users retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", ":userId"],
+							"variable": [{ "key": "userId", "value": "{{testUserId}}", "description": "User ID to get details for" }]
+						},
+						"description": "**Get User Details**\n\nRetrieve detailed information about a specific user including sessions and vault statistics.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | MongoDB ObjectId of the user |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"user-id\",\n      \"fullName\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"phone\": \"+1234567890\",\n      \"status\": \"active\",\n      \"isEmailVerified\": true,\n      \"provider\": \"local\",\n      \"lastLoginAt\": \"2026-01-06T12:00:00.000Z\",\n      \"createdAt\": \"2026-01-01T00:00:00.000Z\"\n    },\n    \"sessions\": [\n      {\n        \"id\": \"session-id\",\n        \"deviceType\": \"WEB\",\n        \"deviceName\": \"Chrome\",\n        \"browser\": \"Chrome 120\",\n        \"os\": \"Windows 10\",\n        \"ipAddress\": \"192.168.1.1\",\n        \"loginAt\": \"2026-01-06T10:00:00.000Z\",\n        \"lastActivityAt\": \"2026-01-06T12:00:00.000Z\"\n      }\n    ],\n    \"vaultStats\": {\n      \"files\": 25,\n      \"folders\": 10,\n      \"storageUsed\": 5368709120,\n      \"storageLimit\": 16106127360,\n      \"storageUsedFormatted\": \"5 GB\",\n      \"storageLimitFormatted\": \"15 GB\"\n    },\n    \"activeSessionCount\": 1\n  },\n  \"message\": \"User details retrieved successfully\"\n}\n```\n\n**Error Responses:**\n- `404`: User not found"
+					}
+				},
+				{
+					"name": "Update User Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/:userId/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", ":userId", "status"],
+							"variable": [{ "key": "userId", "value": "{{testUserId}}", "description": "User ID to update status" }]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"active\",\n  \"reason\": \"Account reactivated after review\"\n}"
+						},
+						"description": "**Update User Status**\n\nChange a user's account status.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID to update |\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `status` | string | Yes | New status value |\n| `reason` | string | No | Reason for status change (required for suspended) |\n\n**status Enum Values:**\n- `active` - Activate the user account\n- `inactive` - Deactivate the user account\n- `suspended` - Suspend/ban the user (requires reason)\n\n**Example Payloads:**\n\n**Activate User:**\n```json\n{\n  \"status\": \"active\"\n}\n```\n\n**Deactivate User:**\n```json\n{\n  \"status\": \"inactive\",\n  \"reason\": \"User requested account deactivation\"\n}\n```\n\n**Suspend User:**\n```json\n{\n  \"status\": \"suspended\",\n  \"reason\": \"Violation of terms of service\"\n}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"user-id\",\n      \"fullName\": \"John Doe\",\n      \"status\": \"active\"\n    }\n  },\n  \"message\": \"User status updated successfully\"\n}\n```\n\n**Note:** This action is logged to admin activity timeline."
+					}
+				},
+				{
+					"name": "Suspend User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/:userId/suspend",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", ":userId", "suspend"],
+							"variable": [{ "key": "userId", "value": "{{testUserId}}", "description": "User ID to suspend" }]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Violation of terms of service - suspicious activity detected\"\n}"
+						},
+						"description": "**Suspend User**\n\nSuspend a user account. Suspended users cannot login.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID to suspend |\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `reason` | string | No | Reason for suspension (recommended) |\n\n**Example Payloads:**\n\n**With Reason:**\n```json\n{\n  \"reason\": \"Violation of terms of service - suspicious activity detected\"\n}\n```\n\n**Without Reason:**\n```json\n{}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"user-id\",\n      \"fullName\": \"John Doe\",\n      \"status\": \"suspended\",\n      \"suspensionReason\": \"Violation of terms of service\"\n    }\n  },\n  \"message\": \"User suspended successfully\"\n}\n```\n\n**What Happens:**\n- User status set to 'suspended'\n- Suspension reason stored\n- User cannot login until activated\n- Action logged to admin activity"
+					}
+				},
+				{
+					"name": "Activate User",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/:userId/activate",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", ":userId", "activate"],
+							"variable": [{ "key": "userId", "value": "{{testUserId}}", "description": "User ID to activate" }]
+						},
+						"description": "**Activate User**\n\nActivate a suspended or inactive user account.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID to activate |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": {\n      \"id\": \"user-id\",\n      \"fullName\": \"John Doe\",\n      \"status\": \"active\"\n    }\n  },\n  \"message\": \"User activated successfully\"\n}\n```\n\n**What Happens:**\n- User status set to 'active'\n- Suspension reason cleared\n- User can login again\n- Action logged to admin activity"
+					}
+				},
+				{
+					"name": "Logout All User Sessions",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/:userId/logout-all",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", ":userId", "logout-all"],
+							"variable": [
+								{ "key": "userId", "value": "{{testUserId}}", "description": "User ID to logout all sessions" }
+							]
+						},
+						"description": "**Logout All User Sessions**\n\nTerminate all active sessions for a specific user.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID to logout |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"user\": \"John Doe\",\n    \"sessionsTerminated\": 3\n  },\n  \"message\": \"All user sessions terminated successfully\"\n}\n```\n\n**What Happens:**\n- All active sessions terminated\n- All refresh tokens invalidated\n- User must login again on all devices\n- Action logged to admin activity"
+					}
+				},
+				{
+					"name": "Export Users",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/export?status=active",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", "export"],
+							"query": [
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filter by status (optional): active, inactive, suspended",
+									"disabled": true
+								}
+							]
+						},
+						"description": "**Export Users Data**\n\nExport all users data for reporting or compliance.\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `status` | string | No | Filter by user status |\n\n**status Enum Values:**\n- `active` - Export only active users\n- `inactive` - Export only inactive users\n- `suspended` - Export only suspended users\n- (empty) - Export all users\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"users\": [\n      {\n        \"id\": \"user-id\",\n        \"fullName\": \"John Doe\",\n        \"email\": \"john@example.com\",\n        \"phone\": \"+1234567890\",\n        \"status\": \"active\",\n        \"isEmailVerified\": true,\n        \"provider\": \"local\",\n        \"lastLoginAt\": \"2026-01-06T12:00:00.000Z\",\n        \"createdAt\": \"2026-01-01T00:00:00.000Z\",\n        \"activeSessions\": 2,\n        \"files\": 25,\n        \"folders\": 10,\n        \"storageUsed\": 5368709120,\n        \"storageLimit\": 16106127360,\n        \"plan\": \"free\"\n      }\n    ],\n    \"count\": 50\n  },\n  \"message\": \"Users exported successfully\"\n}\n```\n\n**Note:** This action is logged to admin activity."
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/users/:userId",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "users", ":userId"],
+							"variable": [{ "key": "userId", "value": "{{testUserId}}", "description": "User ID to delete" }]
+						},
+						"description": "**Delete User**\n\nPermanently delete a user account.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `userId` | string | Yes | User ID to delete |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {},\n  \"message\": \"User deleted successfully\"\n}\n```\n\n**⚠️ Warning:** This action is irreversible!\n\n**What Happens:**\n- User account permanently deleted\n- All sessions terminated\n- Action logged to admin activity\n\n**Error Responses:**\n- `404`: User not found"
+					}
+				}
+			]
+		},
+		{
+			"name": "Session Management",
+			"description": "Session management endpoints for monitoring and controlling user sessions.\n\n**Features:**\n- View all active sessions across platform\n- Filter sessions by user, device type\n- Session statistics\n- Terminate individual sessions\n- **One Device at a Time Policy**: When a user logs in, all previous sessions are automatically terminated\n- **Session Validation**: API calls check for active session - terminated sessions cannot make API calls\n- **Last Activity Tracking**: Session lastActivityAt is updated on each API call (throttled to 1 minute)\n\n**Device Types:**\n- `ANDROID`, `IOS`, `WEB`, `HUAWEI`, `DESKTOP`, `UNKNOWN`\n\n**Termination Reasons:**\n- `user_logout` - User logged out\n- `admin_terminated` - Admin terminated the session\n- `token_expired` - Token expired\n- `password_changed` - Password was changed\n- `security_concern` - Security issue detected\n- `new_login` - User logged in from another device",
+			"item": [
+				{
+					"name": "Get All Sessions",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/sessions?page=1&limit=10&deviceType=WEB&userId=",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "sessions"],
+							"query": [
+								{ "key": "page", "value": "1", "description": "Page number (default: 1)" },
+								{ "key": "limit", "value": "10", "description": "Items per page (default: 10)" },
+								{
+									"key": "deviceType",
+									"value": "WEB",
+									"description": "Filter by device type (optional)",
+									"disabled": true
+								},
+								{ "key": "userId", "value": "", "description": "Filter by user ID (optional)", "disabled": true }
+							]
+						},
+						"description": "**Get All Active Sessions**\n\nRetrieve paginated list of all active sessions across the platform.\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `page` | number | No | Page number (default: 1) |\n| `limit` | number | No | Items per page (default: 10) |\n| `deviceType` | string | No | Filter by device type |\n| `userId` | string | No | Filter by specific user |\n\n**deviceType Enum Values:**\n- `ANDROID` - Android devices\n- `IOS` - iOS devices\n- `WEB` - Web browsers\n- `HUAWEI` - Huawei devices\n- `DESKTOP` - Desktop applications\n- `UNKNOWN` - Unknown devices\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"results\": [\n      {\n        \"id\": \"session-id\",\n        \"user\": {\n          \"id\": \"user-id\",\n          \"fullName\": \"John Doe\",\n          \"email\": \"john@example.com\"\n        },\n        \"deviceType\": \"WEB\",\n        \"deviceName\": \"Chrome\",\n        \"deviceModel\": \"Windows\",\n        \"browser\": \"Chrome 120\",\n        \"os\": \"Windows 10\",\n        \"ipAddress\": \"192.168.1.1\",\n        \"location\": {\n          \"city\": \"Cape Town\",\n          \"country\": \"South Africa\"\n        },\n        \"loginAt\": \"2026-01-06T10:00:00.000Z\",\n        \"lastActivityAt\": \"2026-01-06T12:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"limit\": 10,\n    \"totalPages\": 2,\n    \"totalResults\": 15\n  },\n  \"message\": \"Sessions retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Session Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/sessions/stats",
+						"description": "**Get Session Statistics**\n\nRetrieve session statistics including device breakdown and daily counts.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"totalActive\": 15,\n      \"byDevice\": [\n        { \"device\": \"WEB\", \"count\": 8 },\n        { \"device\": \"ANDROID\", \"count\": 5 },\n        { \"device\": \"IOS\", \"count\": 2 }\n      ],\n      \"newSessionsToday\": 5,\n      \"uniqueUsersWithSessions\": 12\n    }\n  },\n  \"message\": \"Session statistics retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Terminate Session",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/sessions/:sessionId",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "sessions", ":sessionId"],
+							"variable": [{ "key": "sessionId", "value": "{{sessionId}}", "description": "Session ID to terminate" }]
+						},
+						"description": "**Terminate Session**\n\nTerminate a specific user session.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `sessionId` | string | Yes | Session ID to terminate |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"session\": {\n      \"id\": \"session-id\",\n      \"isActive\": false,\n      \"terminatedAt\": \"2026-01-06T12:00:00.000Z\",\n      \"terminatedBy\": \"admin-id\",\n      \"terminationReason\": \"admin_action\"\n    }\n  },\n  \"message\": \"Session terminated successfully\"\n}\n```\n\n**What Happens:**\n- Session marked as inactive\n- User logged out from that device\n- Refresh token invalidated\n- Action logged to admin activity"
+					}
+				}
+			]
+		},
+		{
+			"name": "Legal Pages",
+			"description": "Legal pages management for Terms of Service, Privacy Policy, etc.\n\n**Features:**\n- Create and manage legal documents\n- HTML content support\n- Version tracking\n- Publish/unpublish pages\n\n**Page Types:**\n- `terms_of_service` - Terms of Service\n- `privacy_policy` - Privacy Policy\n- `cookie_policy` - Cookie Policy\n- `disclaimer` - Disclaimer\n- `refund_policy` - Refund Policy",
+			"item": [
+				{
+					"name": "Get All Legal Pages",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/legal",
+						"description": "**Get All Legal Pages**\n\nRetrieve all legal pages.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"pages\": [\n      {\n        \"id\": \"page-id\",\n        \"type\": \"terms_of_service\",\n        \"title\": \"Terms of Service\",\n        \"content\": \"<h1>Terms</h1><p>Content here...</p>\",\n        \"version\": \"1.0\",\n        \"isPublished\": true,\n        \"lastUpdatedBy\": {\n          \"id\": \"admin-id\",\n          \"fullName\": \"Admin\",\n          \"email\": \"admin@example.com\"\n        },\n        \"publishedAt\": \"2026-01-01T00:00:00.000Z\",\n        \"createdAt\": \"2026-01-01T00:00:00.000Z\",\n        \"updatedAt\": \"2026-01-06T12:00:00.000Z\"\n      }\n    ]\n  },\n  \"message\": \"Legal pages retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Legal Page by Type",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/legal/:type",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "legal", ":type"],
+							"variable": [{ "key": "type", "value": "terms_of_service", "description": "Legal page type" }]
+						},
+						"description": "**Get Legal Page by Type**\n\nRetrieve a specific legal page by its type.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `type` | string | Yes | Legal page type |\n\n**type Enum Values:**\n- `terms_of_service` - Terms of Service\n- `privacy_policy` - Privacy Policy\n- `cookie_policy` - Cookie Policy\n- `disclaimer` - Disclaimer\n- `refund_policy` - Refund Policy\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"page\": {\n      \"id\": \"page-id\",\n      \"type\": \"terms_of_service\",\n      \"title\": \"Terms of Service\",\n      \"content\": \"<h1>Terms</h1><p>Content...</p>\",\n      \"version\": \"1.0\",\n      \"isPublished\": true\n    }\n  },\n  \"message\": \"Legal page retrieved successfully\"\n}\n```\n\n**Error Responses:**\n- `404`: Legal page not found"
+					}
+				},
+				{
+					"name": "Create Legal Page",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": "{{baseUrl}}/admin/legal",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"privacy_policy\",\n  \"title\": \"Privacy Policy\",\n  \"content\": \"<h1>Privacy Policy</h1><p>Your privacy is important to us...</p>\"\n}"
+						},
+						"description": "**Create Legal Page**\n\nCreate a new legal page.\n\n**Authentication:** Required (Admin)\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `type` | string | Yes | Legal page type |\n| `title` | string | Yes | Page title |\n| `content` | string | Yes | HTML content |\n\n**type Enum Values:**\n- `terms_of_service` - Terms of Service\n- `privacy_policy` - Privacy Policy\n- `cookie_policy` - Cookie Policy\n- `disclaimer` - Disclaimer\n- `refund_policy` - Refund Policy\n\n**Example Payloads:**\n\n**Terms of Service:**\n```json\n{\n  \"type\": \"terms_of_service\",\n  \"title\": \"Terms of Service\",\n  \"content\": \"<h1>Terms of Service</h1><p>Welcome to IJS Vault...</p>\"\n}\n```\n\n**Privacy Policy:**\n```json\n{\n  \"type\": \"privacy_policy\",\n  \"title\": \"Privacy Policy\",\n  \"content\": \"<h1>Privacy Policy</h1><p>Your privacy matters...</p>\"\n}\n```\n\n**Success Response (201):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"page\": {\n      \"id\": \"page-id\",\n      \"type\": \"privacy_policy\",\n      \"title\": \"Privacy Policy\",\n      \"version\": \"1.0\",\n      \"isPublished\": true\n    }\n  },\n  \"message\": \"Legal page created successfully\"\n}\n```\n\n**Note:** Action logged to admin activity."
+					}
+				},
+				{
+					"name": "Update Legal Page",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/legal/:type",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "legal", ":type"],
+							"variable": [{ "key": "type", "value": "terms_of_service", "description": "Legal page type to update" }]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Terms of Service - Updated\",\n  \"content\": \"<h1>Updated Terms</h1><p>New content here...</p>\",\n  \"version\": \"1.1\",\n  \"isPublished\": true\n}"
+						},
+						"description": "**Update Legal Page**\n\nUpdate an existing legal page.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `type` | string | Yes | Legal page type to update |\n\n**type Enum Values:**\n- `terms_of_service`, `privacy_policy`, `cookie_policy`, `disclaimer`, `refund_policy`\n\n**Request Body (all optional):**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | string | No | Updated title |\n| `content` | string | No | Updated HTML content |\n| `version` | string | No | Version number (e.g., '1.1', '2.0') |\n| `isPublished` | boolean | No | Publish/unpublish the page |\n\n**Example Payloads:**\n\n**Update Content Only:**\n```json\n{\n  \"content\": \"<h1>New Content</h1><p>Updated text...</p>\"\n}\n```\n\n**Update Version:**\n```json\n{\n  \"content\": \"<h1>Major Update</h1>\",\n  \"version\": \"2.0\"\n}\n```\n\n**Unpublish Page:**\n```json\n{\n  \"isPublished\": false\n}\n```\n\n**Full Update:**\n```json\n{\n  \"title\": \"Terms of Service - v2\",\n  \"content\": \"<h1>Terms v2</h1><p>...</p>\",\n  \"version\": \"2.0\",\n  \"isPublished\": true\n}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": { \"page\": { ... } },\n  \"message\": \"Legal page updated successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Public Legal Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"auth": { "type": "noauth" },
+						"url": {
+							"raw": "{{baseUrl}}/legal/:type",
+							"host": ["{{baseUrl}}"],
+							"path": ["legal", ":type"],
+							"variable": [{ "key": "type", "value": "terms_of_service", "description": "Legal page type" }]
+						},
+						"description": "**Get Public Legal Page (No Auth)**\n\nRetrieve a published legal page for public viewing.\n\n**Authentication:** Not required\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `type` | string | Yes | Legal page type |\n\n**type Enum Values:**\n- `terms_of_service` - Terms of Service\n- `privacy_policy` - Privacy Policy\n- `cookie_policy` - Cookie Policy\n- `disclaimer` - Disclaimer\n- `refund_policy` - Refund Policy\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"page\": {\n      \"type\": \"terms_of_service\",\n      \"title\": \"Terms of Service\",\n      \"content\": \"<h1>Terms</h1><p>...</p>\",\n      \"version\": \"1.0\",\n      \"updatedAt\": \"2026-01-06T12:00:00.000Z\"\n    }\n  },\n  \"message\": \"Legal page retrieved successfully\"\n}\n```\n\n**Note:** Only returns published pages. Returns 404 if page not found or not published."
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications",
+			"description": "Admin notification management for sending notifications to users.\n\n**Features:**\n- Send notifications to all users\n- Send notifications to specific users\n- View sent notifications history\n- Notification statistics\n- Optional push notification support\n\n**Notification Types:**\n- `info` - Informational message\n- `warning` - Warning message\n- `success` - Success message\n- `error` - Error message\n- `announcement` - Platform announcement\n- `maintenance` - Maintenance notice\n- `update` - App update notice",
+			"item": [
+				{
+					"name": "Send Notification to All Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": "{{baseUrl}}/admin/notifications/send-all",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"System Maintenance\",\n  \"message\": \"We will be performing scheduled maintenance on January 10th from 2:00 AM to 4:00 AM UTC.\",\n  \"type\": \"maintenance\",\n  \"sendPush\": false\n}"
+						},
+						"description": "**Send Notification to All Users**\n\nBroadcast a notification to all users on the platform.\n\n**Authentication:** Required (Admin)\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | string | Yes | Notification title |\n| `message` | string | Yes | Notification message |\n| `type` | string | No | Notification type (default: info) |\n| `sendPush` | boolean | No | Send push notification (default: false) |\n| `metadata` | object | No | Additional metadata |\n\n**type Enum Values:**\n- `info` - Informational (default)\n- `warning` - Warning message\n- `success` - Success message\n- `error` - Error message\n- `announcement` - Platform announcement\n- `maintenance` - Maintenance notice\n- `update` - App update notice\n\n**Example Payloads:**\n\n**Maintenance Notice:**\n```json\n{\n  \"title\": \"System Maintenance\",\n  \"message\": \"Scheduled maintenance on Jan 10th, 2-4 AM UTC\",\n  \"type\": \"maintenance\",\n  \"sendPush\": true\n}\n```\n\n**Announcement:**\n```json\n{\n  \"title\": \"New Feature Released!\",\n  \"message\": \"Check out our new file sharing features.\",\n  \"type\": \"announcement\",\n  \"sendPush\": true\n}\n```\n\n**Simple Info (minimal):**\n```json\n{\n  \"title\": \"Welcome\",\n  \"message\": \"Thanks for using IJS Vault!\"\n}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"notification-id\",\n    \"title\": \"System Maintenance\",\n    \"type\": \"maintenance\",\n    \"targetType\": \"all\",\n    \"recipientCount\": 52,\n    \"sendPush\": true,\n    \"pushSent\": true\n  },\n  \"message\": \"Notification sent to all users successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Send Notification to Specific Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": "{{baseUrl}}/admin/notifications/send",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Account Review Complete\",\n  \"message\": \"Your account has been reviewed and verified. You now have access to all features.\",\n  \"type\": \"success\",\n  \"userIds\": [\"user-id-1\", \"user-id-2\"],\n  \"sendPush\": true\n}"
+						},
+						"description": "**Send Notification to Specific Users**\n\nSend a notification to selected users.\n\n**Authentication:** Required (Admin)\n\n**Request Body:**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | string | Yes | Notification title |\n| `message` | string | Yes | Notification message |\n| `userIds` | array | Yes | Array of user IDs (min 1) |\n| `type` | string | No | Notification type (default: info) |\n| `sendPush` | boolean | No | Send push notification (default: false) |\n| `metadata` | object | No | Additional metadata |\n\n**type Enum Values:**\n- `info` - Informational (default)\n- `warning` - Warning message\n- `success` - Success message\n- `error` - Error message\n- `announcement` - Platform announcement\n- `maintenance` - Maintenance notice\n- `update` - App update notice\n\n**Example Payloads:**\n\n**Single User:**\n```json\n{\n  \"title\": \"Account Verified\",\n  \"message\": \"Your account has been verified.\",\n  \"type\": \"success\",\n  \"userIds\": [\"695d45ccb30c84001db9e57e\"]\n}\n```\n\n**Multiple Users:**\n```json\n{\n  \"title\": \"Special Offer\",\n  \"message\": \"You've been selected for a premium trial!\",\n  \"type\": \"info\",\n  \"userIds\": [\"user-id-1\", \"user-id-2\", \"user-id-3\"],\n  \"sendPush\": true\n}\n```\n\n**Warning to Users:**\n```json\n{\n  \"title\": \"Action Required\",\n  \"message\": \"Please verify your email to continue.\",\n  \"type\": \"warning\",\n  \"userIds\": [\"user-id-1\"]\n}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"notification-id\",\n    \"title\": \"Account Verified\",\n    \"type\": \"success\",\n    \"targetType\": \"specific\",\n    \"recipientCount\": 1\n  },\n  \"message\": \"Notification sent successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/notifications?page=1&limit=20&type=all",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "notifications"],
+							"query": [
+								{ "key": "page", "value": "1", "description": "Page number (default: 1)" },
+								{ "key": "limit", "value": "20", "description": "Items per page (default: 20, max: 100)" },
+								{ "key": "type", "value": "all", "description": "Filter by type (optional)", "disabled": true }
+							]
+						},
+						"description": "**Get All Notifications**\n\nRetrieve paginated list of sent admin notifications.\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `page` | number | No | Page number (default: 1) |\n| `limit` | number | No | Items per page (default: 20, max: 100) |\n| `type` | string | No | Filter by notification type |\n\n**type Enum Values:**\n- `all` - All types (default)\n- `info`, `warning`, `success`, `error`, `announcement`, `maintenance`, `update`\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"results\": [\n      {\n        \"id\": \"notification-id\",\n        \"title\": \"System Maintenance\",\n        \"message\": \"Scheduled maintenance...\",\n        \"type\": \"maintenance\",\n        \"targetType\": \"all\",\n        \"sentBy\": {\n          \"id\": \"admin-id\",\n          \"fullName\": \"Admin\"\n        },\n        \"sentAt\": \"2026-01-06T12:00:00.000Z\",\n        \"recipientCount\": 52\n      }\n    ],\n    \"page\": 1,\n    \"limit\": 20,\n    \"totalPages\": 1,\n    \"totalResults\": 5\n  },\n  \"message\": \"Notifications retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Notification by ID",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/notifications/:notificationId",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "notifications", ":notificationId"],
+							"variable": [{ "key": "notificationId", "value": "", "description": "Notification ID" }]
+						},
+						"description": "**Get Notification by ID**\n\nRetrieve details of a specific notification.\n\n**Authentication:** Required (Admin)\n\n**Path Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `notificationId` | string | Yes | Notification ID |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"notification\": {\n      \"id\": \"notification-id\",\n      \"title\": \"System Maintenance\",\n      \"message\": \"Scheduled maintenance on Jan 10th\",\n      \"type\": \"maintenance\",\n      \"targetType\": \"all\",\n      \"targetUsers\": [],\n      \"sentBy\": {\n        \"id\": \"admin-id\",\n        \"fullName\": \"Admin\",\n        \"email\": \"admin@example.com\"\n      },\n      \"sentAt\": \"2026-01-06T12:00:00.000Z\",\n      \"sendPush\": true,\n      \"pushSent\": true,\n      \"readBy\": [\"user-id-1\", \"user-id-2\"]\n    }\n  },\n  \"message\": \"Notification retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Notification Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/notifications/stats",
+						"description": "**Get Notification Statistics**\n\nRetrieve notification statistics.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"totalSent\": 25,\n      \"sentToday\": 3,\n      \"byType\": [\n        { \"type\": \"info\", \"count\": 10 },\n        { \"type\": \"announcement\", \"count\": 8 },\n        { \"type\": \"maintenance\", \"count\": 5 },\n        { \"type\": \"warning\", \"count\": 2 }\n      ],\n      \"byTargetType\": [\n        { \"targetType\": \"all\", \"count\": 15 },\n        { \"targetType\": \"specific\", \"count\": 10 }\n      ]\n    }\n  },\n  \"message\": \"Notification statistics retrieved successfully\"\n}\n```"
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Activity",
+			"description": "Admin activity tracking and audit log endpoints.\n\n**Features:**\n- View admin activity timeline\n- Track all admin actions\n- Activity statistics\n- Admin profile with recent activity\n\n**Tracked Actions:**\n- `user_suspended`, `user_activated`, `user_status_changed`\n- `user_deleted`, `users_exported`\n- `session_terminated`, `sessions_terminated`\n- `legal_page_created`, `legal_page_updated`\n- `notification_sent`",
+			"item": [
+				{
+					"name": "Get Admin Profile",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/profile",
+						"description": "**Get Admin Profile**\n\nRetrieve current admin's profile with recent activity.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"profile\": {\n      \"id\": \"admin-id\",\n      \"fullName\": \"IJS Vault Admin\",\n      \"email\": \"admin@ijsvault.com\",\n      \"phone\": \"+27123456789\",\n      \"image\": null,\n      \"role\": \"admin\",\n      \"createdAt\": \"2026-01-01T00:00:00.000Z\",\n      \"lastLoginAt\": \"2026-01-06T12:00:00.000Z\"\n    },\n    \"recentActivity\": [\n      {\n        \"id\": \"activity-id\",\n        \"action\": \"user_suspended\",\n        \"description\": \"Suspended user: John Doe\",\n        \"createdAt\": \"2026-01-06T11:00:00.000Z\"\n      }\n    ]\n  },\n  \"message\": \"Admin profile retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Activity Timeline",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/activity/timeline?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "activity", "timeline"],
+							"query": [
+								{ "key": "page", "value": "1", "description": "Page number (default: 1)" },
+								{ "key": "limit", "value": "20", "description": "Items per page (default: 20)" }
+							]
+						},
+						"description": "**Get Activity Timeline**\n\nRetrieve current admin's activity timeline.\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `page` | number | No | Page number (default: 1) |\n| `limit` | number | No | Items per page (default: 20) |\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"results\": [\n      {\n        \"id\": \"activity-id\",\n        \"action\": \"notification_sent\",\n        \"description\": \"Sent notification to all users: System Maintenance\",\n        \"details\": {\n          \"notificationId\": \"notif-id\",\n          \"recipientCount\": 52,\n          \"targetType\": \"all\"\n        },\n        \"targetUser\": null,\n        \"ipAddress\": \"192.168.1.1\",\n        \"createdAt\": \"2026-01-06T12:00:00.000Z\"\n      },\n      {\n        \"id\": \"activity-id-2\",\n        \"action\": \"user_suspended\",\n        \"description\": \"Suspended user: John Doe\",\n        \"details\": { \"reason\": \"Terms violation\" },\n        \"targetUser\": {\n          \"id\": \"user-id\",\n          \"fullName\": \"John Doe\",\n          \"email\": \"john@example.com\"\n        },\n        \"ipAddress\": \"192.168.1.1\",\n        \"createdAt\": \"2026-01-06T11:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"limit\": 20,\n    \"totalPages\": 1,\n    \"totalResults\": 10\n  },\n  \"message\": \"Activity timeline retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get All Activities",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/activity?page=1&limit=20&action=user_suspended",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "activity"],
+							"query": [
+								{ "key": "page", "value": "1", "description": "Page number (default: 1)" },
+								{ "key": "limit", "value": "20", "description": "Items per page (default: 20)" },
+								{
+									"key": "action",
+									"value": "user_suspended",
+									"description": "Filter by action type (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "**Get All Admin Activities**\n\nRetrieve all admin activities (from all admins).\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `page` | number | No | Page number (default: 1) |\n| `limit` | number | No | Items per page (default: 20) |\n| `action` | string | No | Filter by action type |\n\n**action Enum Values:**\n- `user_suspended` - User suspension actions\n- `user_activated` - User activation actions\n- `user_status_changed` - Status change actions\n- `user_deleted` - User deletion actions\n- `users_exported` - User export actions\n- `session_terminated` - Single session termination\n- `sessions_terminated` - Bulk session termination\n- `legal_page_created` - Legal page creation\n- `legal_page_updated` - Legal page updates\n- `notification_sent` - Notification actions\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"results\": [\n      {\n        \"id\": \"activity-id\",\n        \"admin\": {\n          \"id\": \"admin-id\",\n          \"fullName\": \"Admin\",\n          \"email\": \"admin@example.com\"\n        },\n        \"action\": \"user_suspended\",\n        \"description\": \"Suspended user: John Doe\",\n        \"details\": { \"reason\": \"Terms violation\" },\n        \"targetUser\": {\n          \"id\": \"user-id\",\n          \"fullName\": \"John Doe\"\n        },\n        \"ipAddress\": \"192.168.1.1\",\n        \"createdAt\": \"2026-01-06T11:00:00.000Z\"\n      }\n    ],\n    \"page\": 1,\n    \"limit\": 20,\n    \"totalPages\": 1,\n    \"totalResults\": 15\n  },\n  \"message\": \"Activities retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Activity Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/activity/stats",
+						"description": "**Get Activity Statistics**\n\nRetrieve admin activity statistics.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"today\": 5,\n      \"last7Days\": 25,\n      \"last30Days\": 80,\n      \"byAction\": [\n        { \"action\": \"notification_sent\", \"count\": 20 },\n        { \"action\": \"user_suspended\", \"count\": 15 },\n        { \"action\": \"user_activated\", \"count\": 12 },\n        { \"action\": \"legal_page_updated\", \"count\": 8 },\n        { \"action\": \"session_terminated\", \"count\": 5 }\n      ]\n    }\n  },\n  \"message\": \"Activity statistics retrieved successfully\"\n}\n```"
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Profile",
+			"description": "Admin profile management endpoints.\n\n**Features:**\n- View admin profile with recent activity\n- Update admin profile (name, phone, image)\n- Activity is logged for audit purposes",
+			"item": [
+				{
+					"name": "Get Admin Profile",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/profile",
+						"description": "**Get Admin Profile**\n\nRetrieve the current admin's profile with recent activity.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"profile\": {\n      \"id\": \"admin-id\",\n      \"fullName\": \"IJS Vault Admin\",\n      \"email\": \"admin@ijsvault.com\",\n      \"phone\": \"+27123456789\",\n      \"image\": null,\n      \"role\": \"admin\",\n      \"createdAt\": \"2026-01-06T17:45:18.223Z\",\n      \"lastLoginAt\": \"2026-01-06T20:40:13.365Z\"\n    },\n    \"recentActivity\": [\n      {\n        \"id\": \"activity-id\",\n        \"action\": \"notification_sent\",\n        \"description\": \"Sent notification to all users\",\n        \"createdAt\": \"2026-01-06T20:41:24.399Z\"\n      }\n    ]\n  },\n  \"message\": \"Admin profile retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Update Admin Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"url": "{{baseUrl}}/admin/profile",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fullName\": \"IJS Vault Admin\",\n  \"phone\": \"+27123456789\",\n  \"image\": \"https://example.com/profile.jpg\"\n}"
+						},
+						"description": "**Update Admin Profile**\n\nUpdate the current admin's profile information.\n\n**Authentication:** Required (Admin)\n\n**Request Body (all optional, at least one required):**\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `fullName` | string | No | Admin's full name (2-100 chars) |\n| `phone` | string | No | Phone number |\n| `image` | string | No | Profile image URL |\n\n**Example Payloads:**\n\n**Update Name Only:**\n```json\n{\n  \"fullName\": \"John Admin\"\n}\n```\n\n**Update Phone:**\n```json\n{\n  \"phone\": \"+1234567890\"\n}\n```\n\n**Update Image:**\n```json\n{\n  \"image\": \"https://example.com/new-profile.jpg\"\n}\n```\n\n**Full Update:**\n```json\n{\n  \"fullName\": \"John Admin\",\n  \"phone\": \"+1234567890\",\n  \"image\": \"https://example.com/profile.jpg\"\n}\n```\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"profile\": {\n      \"id\": \"admin-id\",\n      \"fullName\": \"John Admin\",\n      \"email\": \"admin@ijsvault.com\",\n      \"phone\": \"+1234567890\",\n      \"image\": \"https://example.com/profile.jpg\",\n      \"role\": \"admin\",\n      \"createdAt\": \"2026-01-06T17:45:18.223Z\",\n      \"lastLoginAt\": \"2026-01-06T20:40:13.365Z\"\n    }\n  },\n  \"message\": \"Admin profile updated successfully\"\n}\n```\n\n**Note:** This action is logged to admin activity timeline."
+					}
+				}
+			]
+		},
+		{
+			"name": "Settings",
+			"description": "Global settings and configuration endpoints.\n\n**Features:**\n- View and update global settings\n- Configure subscription plans\n- Maintenance mode settings\n- Feature toggles",
+			"item": [
+				{
+					"name": "Get Global Settings",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/settings",
+						"description": "**Get Global Settings**\n\nRetrieve all global platform settings.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"settings\": {\n      \"id\": \"settings-id\",\n      \"plans\": {\n        \"free\": {\n          \"storageLimit\": 16106127360,\n          \"maxFileSize\": 104857600,\n          \"maxSharedUsers\": 5,\n          \"price\": 0,\n          \"features\": {\n            \"canShare\": true,\n            \"canSetReminders\": true,\n            \"canUsePinProtection\": true\n          }\n        },\n        \"basic\": { ... },\n        \"premium\": { ... },\n        \"enterprise\": { ... }\n      },\n      \"maintenance\": {\n        \"enabled\": false,\n        \"message\": \"System under maintenance\",\n        \"allowedRoles\": []\n      },\n      \"features\": {\n        \"registrationEnabled\": true,\n        \"socialLoginEnabled\": true,\n        \"uploadEnabled\": true,\n        \"sharingEnabled\": true,\n        \"remindersEnabled\": true\n      },\n      \"limits\": {\n        \"maxLoginAttempts\": 5,\n        \"loginLockoutDuration\": 900000,\n        \"maxUploadSize\": 5368709120,\n        \"sessionTimeout\": 86400000\n      }\n    }\n  },\n  \"message\": \"Global settings retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Billing Revenue Stats",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": {
+							"raw": "{{baseUrl}}/admin/billing/revenue?period=month",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "billing", "revenue"],
+							"query": [
+								{ "key": "period", "value": "month", "description": "Period: day, week, month, year (default: month)" }
+							]
+						},
+						"description": "**Get Billing Revenue Statistics**\n\nRetrieve revenue statistics for the platform.\n\n**Authentication:** Required (Admin)\n\n**Query Parameters:**\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `period` | string | No | Time period for stats |\n\n**period Enum Values:**\n- `day` - Last 24 hours\n- `week` - Last 7 days\n- `month` - Last 30 days (default)\n- `year` - Last 365 days\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"stats\": {\n      \"totalRevenue\": 1500.00,\n      \"period\": \"month\",\n      \"byPlan\": [\n        { \"plan\": \"basic\", \"revenue\": 500.00, \"count\": 50 },\n        { \"plan\": \"premium\", \"revenue\": 800.00, \"count\": 27 },\n        { \"plan\": \"enterprise\", \"revenue\": 200.00, \"count\": 2 }\n      ]\n    }\n  },\n  \"message\": \"Revenue statistics retrieved successfully\"\n}\n```"
+					}
+				},
+				{
+					"name": "Get Active Subscriptions",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}", "type": "text" }],
+						"url": "{{baseUrl}}/admin/billing/subscriptions",
+						"description": "**Get Active Subscriptions**\n\nRetrieve all active subscriptions.\n\n**Authentication:** Required (Admin)\n\n**Success Response (200):**\n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"subscriptions\": [\n      {\n        \"plan\": \"free\",\n        \"count\": 45,\n        \"percentage\": \"86.54\"\n      },\n      {\n        \"plan\": \"basic\",\n        \"count\": 5,\n        \"percentage\": \"9.62\"\n      },\n      {\n        \"plan\": \"premium\",\n        \"count\": 2,\n        \"percentage\": \"3.85\"\n      }\n    ],\n    \"total\": 52\n  },\n  \"message\": \"Active subscriptions retrieved successfully\"\n}\n```"
+					}
+				}
+			]
+		}
+	]
+}

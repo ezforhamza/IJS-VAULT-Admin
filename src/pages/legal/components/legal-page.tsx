@@ -1,7 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-
-import legalService from "@/api/services/legalService";
 import { Icon } from "@/components/icon";
+import { useLegalPage } from "@/hooks/use-legal";
 import { useRouter } from "@/routes/hooks";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader } from "@/ui/card";
@@ -12,13 +10,17 @@ interface LegalPageProps {
 	slug: string;
 }
 
+const slugToTypeMap: Record<string, string> = {
+	terms: "terms_of_service",
+	privacy: "privacy_policy",
+};
+
 export default function LegalPage({ slug }: LegalPageProps) {
 	const { push } = useRouter();
+	const type = slugToTypeMap[slug] || slug;
 
-	const { data, isLoading, error } = useQuery({
-		queryKey: ["legal", slug],
-		queryFn: () => legalService.getLegalPage(slug),
-	});
+	const { data, isLoading, error } = useLegalPage(type);
+	const pageData = data?.page;
 
 	const handleEdit = () => {
 		push(`/legal/${slug}/edit`);
@@ -63,18 +65,33 @@ export default function LegalPage({ slug }: LegalPageProps) {
 		);
 	}
 
-	if (!data) {
+	if (!pageData) {
+		const pageTypeNames: Record<string, string> = {
+			terms_of_service: "Terms of Service",
+			privacy_policy: "Privacy Policy",
+			cookie_policy: "Cookie Policy",
+			disclaimer: "Disclaimer",
+			refund_policy: "Refund Policy",
+		};
+
 		return (
 			<div className="w-full">
 				<Card>
 					<CardContent className="flex items-center justify-center p-12">
-						<div className="text-center">
-							<Title as="h3" className="mb-2">
-								Page Not Found
-							</Title>
-							<Text variant="body2" className="text-muted-foreground">
-								The requested legal page could not be found.
-							</Text>
+						<div className="text-center space-y-4">
+							<Icon icon="solar:document-add-outline" size={64} className="mx-auto text-muted-foreground opacity-50" />
+							<div>
+								<Title as="h3" className="mb-2">
+									{pageTypeNames[type] || "Legal Page"} Not Created Yet
+								</Title>
+								<Text variant="body2" className="text-muted-foreground">
+									This legal page hasn't been created yet. Click the button below to create it.
+								</Text>
+							</div>
+							<Button onClick={handleEdit}>
+								<Icon icon="solar:add-circle-outline" size={20} className="mr-2" />
+								Create {pageTypeNames[type] || "Page"}
+							</Button>
 						</div>
 					</CardContent>
 				</Card>
@@ -89,16 +106,28 @@ export default function LegalPage({ slug }: LegalPageProps) {
 					<div className="flex items-start justify-between">
 						<div>
 							<Title as="h2" className="text-3xl font-bold">
-								{data.title}
+								{pageData.title}
 							</Title>
-							<Text variant="body2" className="text-muted-foreground mt-2">
-								Last updated:{" "}
-								{new Date(data.lastUpdated).toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-								})}
-							</Text>
+							<div className="mt-2 flex items-center gap-4">
+								<Text variant="body2" className="text-muted-foreground">
+									Version: {pageData.version}
+								</Text>
+								{pageData.publishedAt && (
+									<Text variant="body2" className="text-muted-foreground">
+										Published:{" "}
+										{new Date(pageData.publishedAt).toLocaleDateString("en-US", {
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+										})}
+									</Text>
+								)}
+								{pageData.lastUpdatedBy && (
+									<Text variant="body2" className="text-muted-foreground">
+										By: {pageData.lastUpdatedBy.fullName}
+									</Text>
+								)}
+							</div>
 						</div>
 						<Button onClick={handleEdit} size="sm">
 							<Icon icon="solar:pen-outline" size={16} className="mr-2" />
@@ -109,7 +138,7 @@ export default function LegalPage({ slug }: LegalPageProps) {
 				<CardContent>
 					<div
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: Legal content is controlled and sanitized from backend
-						dangerouslySetInnerHTML={{ __html: data.content }}
+						dangerouslySetInnerHTML={{ __html: pageData.content.replace(/&lt;/g, "<").replace(/&gt;/g, ">") }}
 						className="prose prose-sm max-w-none dark:prose-invert"
 					/>
 				</CardContent>

@@ -18,18 +18,26 @@ export type DeviceType = "android" | "ios" | "huawei" | "web";
  */
 export interface IJSUser {
 	id: string;
-	username: string;
+	username?: string;
+	fullName?: string;
 	email: string;
-	phone: string;
-	avatar: string;
+	phone?: string;
+	avatar?: string;
+	image?: string;
 	status: UserStatus;
-	role: UserRole;
+	role?: UserRole;
+	isEmailVerified?: boolean;
 	createdAt: string;
-	lastLogin: string;
-	storageUsed: number; // in MB
-	categoriesCount: number;
-	subcategoriesCount: number;
-	activeSessionsCount: number;
+	lastLogin?: string;
+	lastLoginAt?: string;
+	storageUsed: number; // in bytes
+	storageLimit: number; // in bytes
+	storageUsedFormatted?: string;
+	storageLimitFormatted?: string;
+	files: number;
+	folders: number;
+	activeSessionsCount?: number;
+	activeSessions?: number;
 }
 
 /**
@@ -44,7 +52,7 @@ export interface UserSession {
 	ipAddress: string;
 	location?: string;
 	loginAt: string;
-	lastActivity: string;
+	lastActivityAt: string;
 	isActive: boolean;
 }
 
@@ -53,7 +61,7 @@ export interface UserSession {
  */
 export interface GetUsersParams {
 	page: number;
-	pageSize: number;
+	limit: number;
 	search?: string;
 	status?: UserStatus;
 	role?: UserRole;
@@ -68,7 +76,8 @@ export interface GetUsersResponse {
 	users: IJSUser[];
 	total: number;
 	page: number;
-	pageSize: number;
+	limit: number;
+	totalPages: number;
 }
 
 /**
@@ -77,6 +86,15 @@ export interface GetUsersResponse {
 export interface GetUserDetailResponse {
 	user: IJSUser;
 	sessions: UserSession[];
+	vaultStats?: {
+		files: number;
+		folders: number;
+		storageUsed: number;
+		storageLimit: number;
+		storageUsedFormatted: string;
+		storageLimitFormatted: string;
+	};
+	activeSessionCount?: number;
 }
 
 /**
@@ -113,7 +131,7 @@ export interface LogoutSessionRequest {
  */
 export interface ExportUsersRequest {
 	format: "csv" | "excel";
-	filters?: Omit<GetUsersParams, "page" | "pageSize">;
+	filters?: Omit<GetUsersParams, "page" | "limit">;
 }
 
 /**
@@ -122,9 +140,11 @@ export interface ExportUsersRequest {
 export interface SessionWithUser extends UserSession {
 	user: {
 		id: string;
-		username: string;
+		username?: string;
+		fullName?: string;
 		email: string;
-		avatar: string;
+		avatar?: string;
+		image?: string;
 	};
 }
 
@@ -133,8 +153,8 @@ export interface SessionWithUser extends UserSession {
  */
 export interface GetSessionsParams {
 	page: number;
-	pageSize: number;
-	search?: string;
+	limit: number;
+	userId?: string;
 	deviceType?: DeviceType;
 }
 
@@ -145,7 +165,8 @@ export interface GetSessionsResponse {
 	sessions: SessionWithUser[];
 	total: number;
 	page: number;
-	pageSize: number;
+	limit: number;
+	totalPages: number;
 }
 
 /**

@@ -14,7 +14,7 @@ interface IJSUserStore {
 		status?: UserStatus;
 		role?: UserRole;
 		page: number;
-		pageSize: number;
+		limit: number;
 	};
 
 	// Selected users for bulk actions
@@ -26,7 +26,7 @@ interface IJSUserStore {
 		setStatus: (status?: UserStatus) => void;
 		setRole: (role?: UserRole) => void;
 		setPage: (page: number) => void;
-		setPageSize: (pageSize: number) => void;
+		setLimit: (limit: number) => void;
 		resetFilters: () => void;
 		setSelectedUserIds: (ids: string[]) => void;
 		toggleUserSelection: (id: string) => void;
@@ -39,7 +39,7 @@ const DEFAULT_FILTERS = {
 	status: undefined,
 	role: undefined,
 	page: 1,
-	pageSize: 10,
+	limit: 10,
 };
 
 const useIJSUserStore = create<IJSUserStore>()((set) => ({
@@ -67,9 +67,9 @@ const useIJSUserStore = create<IJSUserStore>()((set) => ({
 				filters: { ...state.filters, page },
 			})),
 
-		setPageSize: (pageSize) =>
+		setLimit: (limit) =>
 			set((state) => ({
-				filters: { ...state.filters, pageSize, page: 1 },
+				filters: { ...state.filters, limit, page: 1 },
 			})),
 
 		resetFilters: () =>

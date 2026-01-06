@@ -6,38 +6,70 @@
  */
 
 export const API_ENDPOINTS = {
+	// Authentication
+	AUTH: {
+		LOGIN: "/auth/login",
+		LOGOUT: "/auth/logout",
+		REFRESH: "/auth/refresh-tokens",
+	},
+
+	// Dashboard
+	DASHBOARD: {
+		STATS: "/admin/dashboard",
+		PLATFORM_STATS: "/admin/stats",
+		STORAGE_STATS: "/admin/storage/stats",
+	},
+
 	// User Management
 	USERS: {
-		LIST: "/users",
-		DETAIL: "/users/:id",
-		CREATE: "/users",
-		UPDATE: "/users/:id",
-		DELETE: "/users/:id",
-		BULK_DELETE: "/users/bulk-delete",
-		BULK_SUSPEND: "/users/bulk-suspend",
-		BULK_ACTIVATE: "/users/bulk-activate",
-		SESSIONS: "/users/:id/sessions",
-		LOGOUT_SESSION: "/users/:id/sessions/:sessionId/logout",
-		LOGOUT_ALL: "/users/:id/sessions/logout-all",
-		EXPORT: "/users/export",
+		LIST: "/admin/users",
+		DETAIL: "/admin/users/:id",
+		UPDATE_STATUS: "/admin/users/:id/status",
+		SUSPEND: "/admin/users/:id/suspend",
+		ACTIVATE: "/admin/users/:id/activate",
+		LOGOUT_ALL: "/admin/users/:id/logout-all",
+		DELETE: "/admin/users/:id",
+		EXPORT: "/admin/users/export",
 	},
 
 	// Session Management
 	SESSIONS: {
-		LIST: "/sessions",
-		ACTIVE: "/sessions/active",
-		TERMINATE: "/sessions/:id/terminate",
-		BULK_LOGOUT: "/sessions/bulk-logout",
+		LIST: "/admin/sessions",
+		STATS: "/admin/sessions/stats",
+		TERMINATE: "/admin/sessions/:id",
 	},
 
 	// Legal Pages
 	LEGAL: {
-		PAGE: "/legal/:slug",
+		LIST: "/admin/legal",
+		GET_BY_TYPE: "/admin/legal/:type",
+		CREATE: "/admin/legal",
+		UPDATE: "/admin/legal/:type",
+		PUBLIC: "/legal/:type",
 	},
 
 	// Notifications
 	NOTIFICATIONS: {
-		SEND: "/notifications/send",
+		LIST: "/admin/notifications",
+		GET_BY_ID: "/admin/notifications/:id",
+		SEND_ALL: "/admin/notifications/send-all",
+		SEND: "/admin/notifications/send",
+		STATS: "/admin/notifications/stats",
+	},
+
+	// Admin Activity
+	ACTIVITY: {
+		PROFILE: "/admin/profile",
+		TIMELINE: "/admin/activity/timeline",
+		LIST: "/admin/activity",
+		STATS: "/admin/activity/stats",
+	},
+
+	// Settings
+	SETTINGS: {
+		GLOBAL: "/admin/settings",
+		REVENUE: "/admin/billing/revenue",
+		SUBSCRIPTIONS: "/admin/billing/subscriptions",
 	},
 } as const;
 

@@ -1,14 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { DB_IJS_USERS } from "@/_mock/assets/ijs-users";
-import notificationService from "@/api/services/notificationService";
 import { Icon } from "@/components/icon";
+import { UserAvatar } from "@/components/user-avatar";
+import { useSendNotification, useSendNotificationToAll } from "@/hooks/use-notifications";
+import { useUsersList } from "@/hooks/use-users";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader } from "@/ui/card";
+import { Checkbox } from "@/ui/checkbox";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Textarea } from "@/ui/textarea";
 import { Text, Title } from "@/ui/typography";
 import { cn } from "@/utils";
@@ -20,44 +22,43 @@ export default function NotificationsPage() {
 	const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 	const [title, setTitle] = useState("");
 	const [message, setMessage] = useState("");
+	const [notificationType, setNotificationType] = useState("info");
+	const [sendPush, setSendPush] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
+	// const [notificationsPage, setNotificationsPage] = useState(1);
 
-	const activeUsers = DB_IJS_USERS.filter((u) => u.status === "active");
+	// Fetch real users from API
+	const { data: usersData } = useUsersList({
+		page: currentPage,
+		limit: USERS_PER_PAGE,
+		status: "active",
+		search: searchQuery,
+	});
+	const activeUsers = usersData?.users || [];
 
-	// Filter users by search query
-	const filteredUsers = useMemo(() => {
-		if (!searchQuery.trim()) return activeUsers;
-		const query = searchQuery.toLowerCase();
-		return activeUsers.filter((u) => u.username.toLowerCase().includes(query) || u.email.toLowerCase().includes(query));
-	}, [searchQuery, activeUsers]);
+	// Fetch notifications history
+	// const { data: notificationsData } = useNotifications({ page: notificationsPage, limit: 10 });
+	// const { data: statsData } = useNotificationStats();
 
-	// Paginate users
-	const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
-	const paginatedUsers = useMemo(() => {
-		const start = (currentPage - 1) * USERS_PER_PAGE;
-		return filteredUsers.slice(start, start + USERS_PER_PAGE);
-	}, [filteredUsers, currentPage]);
+	const totalPages = usersData?.totalPages || 1;
+	const paginatedUsers = activeUsers;
 
-	// Reset to page 1 when search changes
 	const handleSearchChange = (value: string) => {
 		setSearchQuery(value);
 		setCurrentPage(1);
 	};
 
-	const sendMutation = useMutation({
-		mutationFn: notificationService.sendNotification,
-		onSuccess: (response) => {
-			toast.success(`Notification sent successfully! Sent: ${response.sent}, Failed: ${response.failed}`);
-			// Reset form
-			setTitle("");
-			setMessage("");
-			setSelectedUserIds([]);
-		},
-		onError: (error: any) => {
-			toast.error(error?.message || "Failed to send notification");
-		},
-	});
+	const sendToSpecificMutation = useSendNotification();
+	const sendToAllMutation = useSendNotificationToAll();
+
+	const resetForm = () => {
+		setTitle("");
+		setMessage("");
+		setSelectedUserIds([]);
+		setNotificationType("info");
+		setSendPush(false);
+	};
 
 	const handleSend = () => {
 		if (!title.trim()) {
@@ -73,12 +74,14 @@ export default function NotificationsPage() {
 			return;
 		}
 
-		sendMutation.mutate({
-			target,
-			userIds: target === "specific" ? selectedUserIds : undefined,
-			title,
-			message,
-		});
+		if (target === "all") {
+			sendToAllMutation.mutate({ title, message, type: notificationType, sendPush }, { onSuccess: resetForm });
+		} else {
+			sendToSpecificMutation.mutate(
+				{ title, message, type: notificationType, userIds: selectedUserIds, sendPush },
+				{ onSuccess: resetForm },
+			);
+		}
 	};
 
 	const handleUserSelection = (userId: string) => {
@@ -106,7 +109,8 @@ export default function NotificationsPage() {
 	const areAllPageUsersSelected =
 		paginatedUsers.length > 0 && paginatedUsers.every((u) => selectedUserIds.includes(u.id));
 
-	const recipientCount = target === "all" ? activeUsers.length : selectedUserIds.length;
+	const recipientCount = target === "all" ? usersData?.total || 0 : selectedUserIds.length;
+	const isLoading = sendToSpecificMutation.isPending || sendToAllMutation.isPending;
 
 	return (
 		<div className="w-full">
@@ -145,7 +149,7 @@ export default function NotificationsPage() {
 									<Label htmlFor="all" className="flex-1 cursor-pointer">
 										<div className="font-medium">All Active Users</div>
 										<Text variant="body2" className="text-muted-foreground">
-											Send to all {activeUsers.length} active users
+											Send to all {usersData?.total || 0} active users
 										</Text>
 									</Label>
 									<Icon icon="solar:users-group-rounded-bold" size={24} className="text-primary" />
@@ -239,9 +243,14 @@ export default function NotificationsPage() {
 															: "hover:bg-muted/50 border border-transparent",
 													)}
 												>
-													<img src={user.avatar} alt={user.username} className="h-10 w-10 rounded-full" />
+													<UserAvatar
+														src={user.image || user.avatar}
+														name={user.fullName || user.username}
+														email={user.email}
+														size="md"
+													/>
 													<div className="flex-1">
-														<div className="font-medium">{user.username}</div>
+														<div className="font-medium">{user.fullName || user.username}</div>
 														<Text variant="body2" className="text-muted-foreground">
 															{user.email}
 														</Text>
@@ -259,7 +268,7 @@ export default function NotificationsPage() {
 								{totalPages > 1 && (
 									<div className="flex items-center justify-between pt-2">
 										<Text variant="body2" className="text-muted-foreground">
-											Page {currentPage} of {totalPages} ({filteredUsers.length} users)
+											Page {currentPage} of {totalPages}
 										</Text>
 										<div className="flex gap-2">
 											<Button
@@ -314,6 +323,33 @@ export default function NotificationsPage() {
 							/>
 						</div>
 
+						{/* Notification Type */}
+						<div className="space-y-2">
+							<Label htmlFor="type" className="text-base font-semibold">
+								Notification Type
+							</Label>
+							<Select value={notificationType} onValueChange={setNotificationType}>
+								<SelectTrigger id="type">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="info">Info</SelectItem>
+									<SelectItem value="announcement">Announcement</SelectItem>
+									<SelectItem value="success">Success</SelectItem>
+									<SelectItem value="warning">Warning</SelectItem>
+									<SelectItem value="maintenance">Maintenance</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+
+						{/* Push Notification */}
+						<div className="flex items-center space-x-2">
+							<Checkbox id="push" checked={sendPush} onCheckedChange={(checked) => setSendPush(checked as boolean)} />
+							<Label htmlFor="push" className="cursor-pointer">
+								Send push notification to mobile devices
+							</Label>
+						</div>
+
 						{/* Footer */}
 						<div className="flex items-center justify-between pt-4 border-t">
 							<div className="flex items-center gap-2 text-muted-foreground">
@@ -323,8 +359,8 @@ export default function NotificationsPage() {
 									{recipientCount !== 1 ? "s" : ""}
 								</Text>
 							</div>
-							<Button onClick={handleSend} disabled={sendMutation.isPending} size="lg" className="min-w-32">
-								{sendMutation.isPending ? (
+							<Button onClick={handleSend} disabled={isLoading} size="lg" className="min-w-32">
+								{isLoading ? (
 									<>
 										<Icon icon="solar:loader-outline" size={20} className="mr-2 animate-spin" />
 										Sending...

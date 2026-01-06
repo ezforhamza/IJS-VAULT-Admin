@@ -1,6 +1,6 @@
-import { DB_IJS_SESSIONS, DB_IJS_USERS } from "@/_mock/assets/ijs-users";
 import { Chart, useChart } from "@/components/chart";
 import { Icon } from "@/components/icon";
+import { useDashboardStats } from "@/hooks/use-dashboard";
 import { Card, CardContent, CardHeader } from "@/ui/card";
 import { Text, Title } from "@/ui/typography";
 import { cn } from "@/utils";
@@ -11,9 +11,10 @@ interface StatCardProps {
 	icon: string;
 	iconBgColor: string;
 	iconColor: string;
+	loading?: boolean;
 }
 
-function StatCard({ title, value, icon, iconBgColor, iconColor }: StatCardProps) {
+function StatCard({ title, value, icon, iconBgColor, iconColor, loading }: StatCardProps) {
 	return (
 		<Card>
 			<CardContent className="p-6">
@@ -23,7 +24,7 @@ function StatCard({ title, value, icon, iconBgColor, iconColor }: StatCardProps)
 							{title}
 						</Text>
 						<Title as="h3" className="text-3xl font-bold">
-							{value}
+							{loading ? "..." : value}
 						</Title>
 					</div>
 					<div className={cn("flex h-16 w-16 items-center justify-center rounded-2xl", iconBgColor)}>
@@ -36,25 +37,32 @@ function StatCard({ title, value, icon, iconBgColor, iconColor }: StatCardProps)
 }
 
 export default function DashboardPage() {
-	// Calculate stats from mock data
-	const totalUsers = DB_IJS_USERS.length;
-	const activeUsers = DB_IJS_USERS.filter((u) => u.status === "active").length;
-	const suspendedUsers = DB_IJS_USERS.filter((u) => u.status === "suspended").length;
-	const activeSessions = DB_IJS_SESSIONS.filter((s) => s.isActive).length;
+	// Fetch real dashboard stats from API
+	const { data: stats, isLoading } = useDashboardStats();
 
-	// User status distribution
-	const userStatusData = [
+	// Extract stats from API response
+	const totalUsers = stats?.totalUsers || 0;
+	const activeUsers = stats?.activeUsers || 0;
+	const suspendedUsers = stats?.suspendedUsers || 0;
+	const activeSessions = stats?.activeSessions || 0;
+	const inactiveUsers = stats?.inactiveUsers || 0;
+
+	// User status distribution from API
+	const userStatusData = stats?.userStatusDistribution?.map((d) => ({
+		label: d.status.charAt(0).toUpperCase() + d.status.slice(1),
+		value: d.count,
+	})) || [
 		{ label: "Active", value: activeUsers },
 		{ label: "Suspended", value: suspendedUsers },
-		{ label: "Inactive", value: DB_IJS_USERS.filter((u) => u.status === "inactive").length },
+		{ label: "Inactive", value: inactiveUsers },
 	];
 
-	// Sessions by device type
-	const deviceTypes = ["android", "ios", "huawei", "web"];
-	const sessionsByDevice = deviceTypes.map((type) => ({
-		type: type.charAt(0).toUpperCase() + type.slice(1),
-		count: DB_IJS_SESSIONS.filter((s) => s.isActive && s.deviceType === type).length,
-	}));
+	// Sessions by device type from API
+	const sessionsByDevice =
+		stats?.sessionsByDevice?.map((d) => ({
+			type: d.device,
+			count: d.count,
+		})) || [];
 
 	// Chart options
 	const userStatusChartOptions = useChart({
@@ -112,6 +120,7 @@ export default function DashboardPage() {
 					icon="solar:users-group-rounded-bold"
 					iconBgColor="bg-primary/10"
 					iconColor="text-primary"
+					loading={isLoading}
 				/>
 				<StatCard
 					title="Active Users"
@@ -119,6 +128,7 @@ export default function DashboardPage() {
 					icon="solar:user-check-bold"
 					iconBgColor="bg-green-500/10"
 					iconColor="text-green-500"
+					loading={isLoading}
 				/>
 				<StatCard
 					title="Suspended Users"
@@ -126,6 +136,7 @@ export default function DashboardPage() {
 					icon="solar:user-block-bold"
 					iconBgColor="bg-orange-500/10"
 					iconColor="text-orange-500"
+					loading={isLoading}
 				/>
 				<StatCard
 					title="Active Sessions"
@@ -133,6 +144,7 @@ export default function DashboardPage() {
 					icon="solar:devices-bold"
 					iconBgColor="bg-blue-500/10"
 					iconColor="text-blue-500"
+					loading={isLoading}
 				/>
 			</div>
 

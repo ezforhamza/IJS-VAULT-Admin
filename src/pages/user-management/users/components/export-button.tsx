@@ -13,7 +13,7 @@ export function ExportButton() {
 	const exportMutation = useExportUsers();
 
 	const handleExport = (format: "csv" | "excel") => {
-		const { page: _page, pageSize: _pageSize, ...filterParams } = filters;
+		const { page: _page, limit: _limit, ...filterParams } = filters;
 		exportMutation.mutate({
 			format,
 			filters: filterParams,

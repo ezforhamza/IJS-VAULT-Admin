@@ -13,7 +13,7 @@ interface IJSSessionStore {
 		search: string;
 		deviceType?: DeviceType;
 		page: number;
-		pageSize: number;
+		limit: number;
 	};
 
 	// Selected sessions for bulk actions
@@ -24,7 +24,7 @@ interface IJSSessionStore {
 		setSearch: (search: string) => void;
 		setDeviceType: (deviceType?: DeviceType) => void;
 		setPage: (page: number) => void;
-		setPageSize: (pageSize: number) => void;
+		setLimit: (limit: number) => void;
 		resetFilters: () => void;
 		setSelectedSessionIds: (ids: string[]) => void;
 		toggleSessionSelection: (id: string) => void;
@@ -36,7 +36,7 @@ const DEFAULT_FILTERS = {
 	search: "",
 	deviceType: undefined,
 	page: 1,
-	pageSize: 10,
+	limit: 10,
 };
 
 const useIJSSessionStore = create<IJSSessionStore>()((set) => ({
@@ -59,9 +59,9 @@ const useIJSSessionStore = create<IJSSessionStore>()((set) => ({
 				filters: { ...state.filters, page },
 			})),
 
-		setPageSize: (pageSize) =>
+		setLimit: (limit) =>
 			set((state) => ({
-				filters: { ...state.filters, pageSize, page: 1 },
+				filters: { ...state.filters, limit, page: 1 },
 			})),
 
 		resetFilters: () =>

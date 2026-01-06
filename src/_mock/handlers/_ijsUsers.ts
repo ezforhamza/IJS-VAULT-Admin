@@ -37,9 +37,9 @@ export const getUsersList = http.get(`/api${API_ENDPOINTS.USERS.LIST}`, ({ reque
 		const searchLower = search.toLowerCase();
 		filteredUsers = filteredUsers.filter(
 			(user) =>
-				user.username.toLowerCase().includes(searchLower) ||
+				user.username?.toLowerCase().includes(searchLower) ||
 				user.email.toLowerCase().includes(searchLower) ||
-				user.phone.includes(searchLower),
+				user.phone?.includes(searchLower),
 		);
 	}
 
@@ -61,7 +61,8 @@ export const getUsersList = http.get(`/api${API_ENDPOINTS.USERS.LIST}`, ({ reque
 		users,
 		total,
 		page,
-		pageSize,
+		limit: pageSize,
+		totalPages: Math.ceil(total / pageSize),
 	};
 
 	return HttpResponse.json({
@@ -83,6 +84,7 @@ export const getUserDetail = http.get(`/api${API_ENDPOINTS.USERS.DETAIL}`, ({ pa
 			{
 				status: ResultStatus.ERROR,
 				message: "User not found",
+				lastActivityAt: "2025-10-17T08:45:00Z",
 			},
 			{ status: 404 },
 		);
@@ -114,6 +116,7 @@ export const deleteUser = http.delete(`/api${API_ENDPOINTS.USERS.DELETE}`, ({ pa
 			{
 				status: ResultStatus.ERROR,
 				message: "User not found",
+				lastActivityAt: "2025-10-17T08:45:00Z",
 			},
 			{ status: 404 },
 		);
@@ -131,7 +134,7 @@ export const deleteUser = http.delete(`/api${API_ENDPOINTS.USERS.DELETE}`, ({ pa
 /**
  * POST /api/users/bulk-delete - Bulk delete users
  */
-export const bulkDeleteUsers = http.post(`/api${API_ENDPOINTS.USERS.BULK_DELETE}`, async ({ request }) => {
+export const bulkDeleteUsers = http.post("/api/admin/users/bulk-delete", async ({ request }) => {
 	const { userIds } = (await request.json()) as BulkDeleteUsersRequest;
 
 	userIds.forEach((id) => {
@@ -151,7 +154,7 @@ export const bulkDeleteUsers = http.post(`/api${API_ENDPOINTS.USERS.BULK_DELETE}
 /**
  * POST /api/users/bulk-suspend - Bulk suspend users
  */
-export const bulkSuspendUsers = http.post(`/api${API_ENDPOINTS.USERS.BULK_SUSPEND}`, async ({ request }) => {
+export const bulkSuspendUsers = http.post("/api/admin/users/bulk-suspend", async ({ request }) => {
 	const { userIds } = (await request.json()) as BulkSuspendUsersRequest;
 
 	userIds.forEach((id) => {
@@ -171,7 +174,7 @@ export const bulkSuspendUsers = http.post(`/api${API_ENDPOINTS.USERS.BULK_SUSPEN
 /**
  * POST /api/users/bulk-activate - Bulk activate users
  */
-export const bulkActivateUsers = http.post(`/api${API_ENDPOINTS.USERS.BULK_ACTIVATE}`, async ({ request }) => {
+export const bulkActivateUsers = http.post("/api/admin/users/bulk-activate", async ({ request }) => {
 	const { userIds } = (await request.json()) as BulkActivateUsersRequest;
 
 	userIds.forEach((id) => {
@@ -191,7 +194,7 @@ export const bulkActivateUsers = http.post(`/api${API_ENDPOINTS.USERS.BULK_ACTIV
 /**
  * GET /api/users/:id/sessions - Get user sessions
  */
-export const getUserSessions = http.get(`/api${API_ENDPOINTS.USERS.SESSIONS}`, ({ params }) => {
+export const getUserSessions = http.get("/api/admin/users/:id/sessions", ({ params }) => {
 	const { id } = params;
 	const sessions = DB_IJS_SESSIONS.filter((s) => s.userId === id);
 
@@ -205,7 +208,7 @@ export const getUserSessions = http.get(`/api${API_ENDPOINTS.USERS.SESSIONS}`, (
 /**
  * POST /api/users/:id/sessions/:sessionId/logout - Force logout session
  */
-export const logoutSession = http.post(`/api${API_ENDPOINTS.USERS.LOGOUT_SESSION}`, ({ params }) => {
+export const logoutSession = http.post("/api/admin/users/:id/sessions/:sessionId/logout", ({ params }) => {
 	const { id, sessionId } = params;
 	const session = DB_IJS_SESSIONS.find((s) => s.id === sessionId && s.userId === id);
 
@@ -214,6 +217,7 @@ export const logoutSession = http.post(`/api${API_ENDPOINTS.USERS.LOGOUT_SESSION
 			{
 				status: ResultStatus.ERROR,
 				message: "Session not found",
+				lastActivityAt: "2025-10-17T08:45:00Z",
 			},
 			{ status: 404 },
 		);
@@ -257,7 +261,7 @@ export const exportUsers = http.get(`/api${API_ENDPOINTS.USERS.EXPORT}`, ({ requ
 	const csvHeaders = "Username,Email,Phone,Status,Role,Storage (MB),Categories,Last Login\n";
 	const csvRows = DB_IJS_USERS.map(
 		(user) =>
-			`${user.username},${user.email},${user.phone},${user.status},${user.role},${user.storageUsed},${user.categoriesCount},${user.lastLogin}`,
+			`${user.username},${user.email},${user.phone},${user.status},${user.role},${user.storageUsed},${0},${user.lastLogin}`,
 	).join("\n");
 
 	const csvContent = csvHeaders + csvRows;
@@ -299,7 +303,7 @@ export const getAllSessions = http.get(`/api${API_ENDPOINTS.SESSIONS.LIST}`, ({ 
 	if (search) {
 		const searchLower = search.toLowerCase();
 		sessionsWithUser = sessionsWithUser.filter(
-			(s) => s.user.username.toLowerCase().includes(searchLower) || s.user.email.toLowerCase().includes(searchLower),
+			(s) => s.user.username?.toLowerCase().includes(searchLower) || s.user.email.toLowerCase().includes(searchLower),
 		);
 	}
 
@@ -318,7 +322,8 @@ export const getAllSessions = http.get(`/api${API_ENDPOINTS.SESSIONS.LIST}`, ({ 
 		sessions,
 		total,
 		page,
-		pageSize,
+		limit: pageSize,
+		totalPages: Math.ceil(total / pageSize),
 	};
 
 	return HttpResponse.json({
@@ -331,7 +336,7 @@ export const getAllSessions = http.get(`/api${API_ENDPOINTS.SESSIONS.LIST}`, ({ 
 /**
  * POST /api/sessions/bulk-logout - Bulk logout sessions
  */
-export const bulkLogoutSessions = http.post(`/api${API_ENDPOINTS.SESSIONS.BULK_LOGOUT}`, async ({ request }) => {
+export const bulkLogoutSessions = http.post("/api/admin/sessions/bulk-logout", async ({ request }) => {
 	const { sessionIds } = (await request.json()) as BulkLogoutSessionsRequest;
 
 	sessionIds.forEach((id) => {

@@ -42,7 +42,25 @@ export function useUserSessions(userId: string) {
 }
 
 /**
- * Force logout single session
+ * Terminate single session (using sessionId directly)
+ */
+export function useTerminateSession() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (sessionId: string) => ijsUserService.terminateSession(sessionId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: sessionKeys.lists() });
+			toast.success("Session terminated successfully");
+		},
+		onError: () => {
+			toast.error("Failed to terminate session");
+		},
+	});
+}
+
+/**
+ * Force logout single session (legacy - for user sessions page)
  */
 export function useLogoutSession() {
 	const queryClient = useQueryClient();
@@ -94,5 +112,15 @@ export function useBulkLogoutSessions() {
 		onError: () => {
 			toast.error("Failed to terminate sessions");
 		},
+	});
+}
+
+/**
+ * Fetch session statistics
+ */
+export function useSessionStats() {
+	return useQuery({
+		queryKey: [...sessionKeys.all, "stats"],
+		queryFn: () => ijsUserService.getSessionStats(),
 	});
 }

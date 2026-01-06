@@ -3,6 +3,7 @@
  */
 
 import type { ColumnsType } from "antd/es/table";
+import { UserAvatar } from "@/components/user-avatar";
 import type { IJSUser } from "@/types/user-management";
 import { Badge } from "@/ui/badge";
 import { Checkbox } from "@/ui/checkbox";
@@ -46,9 +47,14 @@ export function getUserColumns({
 			width: 280,
 			render: (_, record) => (
 				<div className="flex items-center gap-3">
-					<img src={record.avatar} alt={record.username} className="h-10 w-10 rounded-full" />
+					<UserAvatar
+						src={record.image || record.avatar}
+						name={record.fullName || record.username}
+						email={record.email}
+						size="md"
+					/>
 					<div className="flex flex-col">
-						<span className="text-sm font-medium">{record.username}</span>
+						<span className="text-sm font-medium">{record.fullName || record.username}</span>
 						<span className="text-xs text-text-secondary">{record.email}</span>
 					</div>
 				</div>
@@ -90,9 +96,9 @@ export function getUserColumns({
 			},
 		},
 		{
-			title: "Categories",
-			dataIndex: "categoriesCount",
-			key: "categoriesCount",
+			title: "Files",
+			dataIndex: "files",
+			key: "files",
 			width: 100,
 			align: "center",
 			render: (count: number) => <span className="text-sm">{count}</span>,

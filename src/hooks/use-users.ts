@@ -119,23 +119,85 @@ export function useBulkActivateUsers() {
 }
 
 /**
+ * Suspend single user
+ */
+export function useSuspendUser() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ userId, reason }: { userId: string; reason?: string }) => ijsUserService.suspendUser(userId, reason),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: userKeys.details() });
+			toast.success("User suspended successfully");
+		},
+		onError: () => {
+			toast.error("Failed to suspend user");
+		},
+	});
+}
+
+/**
+ * Activate single user
+ */
+export function useActivateUser() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: (userId: string) => ijsUserService.activateUser(userId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: userKeys.details() });
+			toast.success("User activated successfully");
+		},
+		onError: () => {
+			toast.error("Failed to activate user");
+		},
+	});
+}
+
+/**
+ * Update user status
+ */
+export function useUpdateUserStatus() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ userId, status, reason }: { userId: string; status: string; reason?: string }) =>
+			ijsUserService.updateUserStatus(userId, { status, reason }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+			queryClient.invalidateQueries({ queryKey: userKeys.details() });
+			toast.success("User status updated successfully");
+		},
+		onError: () => {
+			toast.error("Failed to update user status");
+		},
+	});
+}
+
+/**
  * Export users to CSV/Excel
  */
 export function useExportUsers() {
 	return useMutation({
 		mutationFn: (params: ExportUsersRequest) => ijsUserService.exportUsers(params),
-		onSuccess: (blob, variables) => {
-			// Create download link
-			const url = window.URL.createObjectURL(blob);
-			const link = document.createElement("a");
-			link.href = url;
-			link.download = `ijs-vault-users.${variables.format === "csv" ? "csv" : "xlsx"}`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			window.URL.revokeObjectURL(url);
+		onSuccess: (response) => {
+			// Dynamically import export utilities
+			import("@/utils/export").then(({ exportUsersToCSV, exportUsersToExcel, downloadBlob }) => {
+				const { users, format } = response;
 
-			toast.success("Users exported successfully");
+				if (users.length === 0) {
+					toast.error("No users to export");
+					return;
+				}
+
+				const blob = format === "csv" ? exportUsersToCSV(users) : exportUsersToExcel(users);
+				const filename = `ijs-vault-users-${new Date().toISOString().split("T")[0]}.${format === "csv" ? "csv" : "xlsx"}`;
+
+				downloadBlob(blob, filename);
+				toast.success(`${users.length} users exported successfully`);
+			});
 		},
 		onError: () => {
 			toast.error("Failed to export users");

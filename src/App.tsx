@@ -9,16 +9,17 @@ import { GLOBAL_CONFIG } from "./global-config";
 import { AntdAdapter } from "./theme/adapter/antd.adapter";
 import { ThemeProvider } from "./theme/theme-provider";
 
-if (import.meta.env.DEV) {
-	import("react-scan").then(({ scan }) => {
-		scan({
-			enabled: false,
-			showToolbar: true,
-			log: false,
-			animationSpeed: "fast",
-		});
-	});
-}
+// React Scan disabled due to compatibility issues with React 19
+// if (import.meta.env.DEV) {
+// 	import("react-scan").then(({ scan }) => {
+// 		scan({
+// 			enabled: false,
+// 			showToolbar: true,
+// 			log: false,
+// 			animationSpeed: "fast",
+// 		});
+// 	});
+// }
 
 function App({ children }: { children: React.ReactNode }) {
 	return (

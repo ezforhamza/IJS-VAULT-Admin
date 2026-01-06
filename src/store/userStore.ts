@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
+// import { toast } from "sonner"; // Error handled by apiClient
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { UserInfo, UserToken } from "#/entity";
@@ -61,13 +61,32 @@ export const useSignIn = () => {
 	const signIn = async (data: SignInReq) => {
 		try {
 			const res = await signInMutation.mutateAsync(data);
-			const { user, accessToken, refreshToken } = res;
-			setUserToken({ accessToken, refreshToken });
-			setUserInfo(user);
+
+			// Handle real API response format: { user: {...}, tokens: { access: {...}, refresh: {...} } }
+			if (res.tokens) {
+				const { user, tokens } = res;
+				const accessToken = tokens.access.token;
+				const refreshToken = tokens.refresh.token;
+
+				// Store access token in localStorage for apiClient
+				localStorage.setItem("accessToken", accessToken);
+
+				setUserToken({ accessToken, refreshToken });
+				setUserInfo(user);
+			} else {
+				// Handle legacy format: { user, accessToken, refreshToken }
+				const { user, accessToken, refreshToken } = res;
+
+				// Store access token in localStorage for apiClient
+				if (accessToken) {
+					localStorage.setItem("accessToken", accessToken);
+				}
+
+				setUserToken({ accessToken, refreshToken });
+				setUserInfo(user);
+			}
 		} catch (err) {
-			toast.error(err.message, {
-				position: "top-center",
-			});
+			// Error already handled by apiClient interceptor
 			throw err;
 		}
 	};

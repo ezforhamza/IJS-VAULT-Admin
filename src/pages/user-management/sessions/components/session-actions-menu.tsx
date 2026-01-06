@@ -2,8 +2,10 @@
  * Session Actions Menu Component
  */
 
+import { useState } from "react";
+import { ConfirmModal } from "@/components/confirm-modal";
 import { Icon } from "@/components/icon";
-import { useLogoutSession } from "@/hooks/use-sessions";
+import { useTerminateSession } from "@/hooks/use-sessions";
 import type { SessionWithUser } from "@/types/user-management";
 import { Button } from "@/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/ui/dropdown-menu";
@@ -13,30 +15,43 @@ interface SessionActionsMenuProps {
 }
 
 export function SessionActionsMenu({ session }: SessionActionsMenuProps) {
-	const logoutSessionMutation = useLogoutSession();
+	const [showConfirm, setShowConfirm] = useState(false);
+	const terminateSessionMutation = useTerminateSession();
 
-	const handleLogout = () => {
-		if (window.confirm(`Are you sure you want to terminate this session?`)) {
-			logoutSessionMutation.mutate({
-				userId: session.userId,
-				sessionId: session.id,
-			});
-		}
+	const handleTerminate = () => {
+		terminateSessionMutation.mutate(session.id, {
+			onSuccess: () => {
+				setShowConfirm(false);
+			},
+		});
 	};
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="icon" className="h-8 w-8">
-					<Icon icon="solar:menu-dots-bold" size={18} />
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end">
-				<DropdownMenuItem onClick={handleLogout} className="text-destructive">
-					<Icon icon="solar:logout-2-outline" size={16} className="mr-2" />
-					Terminate Session
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<>
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<Button variant="ghost" size="icon" className="h-8 w-8">
+						<Icon icon="solar:menu-dots-bold" size={18} />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end">
+					<DropdownMenuItem onClick={() => setShowConfirm(true)} className="text-destructive">
+						<Icon icon="solar:logout-2-outline" size={16} className="mr-2" />
+						Terminate Session
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+
+			<ConfirmModal
+				open={showConfirm}
+				onOpenChange={setShowConfirm}
+				onConfirm={handleTerminate}
+				title="Terminate Session"
+				description={`Are you sure you want to terminate this session for ${session.user.fullName || session.user.email}? The user will be logged out from this device.`}
+				confirmText="Terminate"
+				variant="danger"
+				loading={terminateSessionMutation.isPending}
+			/>
+		</>
 	);
 }

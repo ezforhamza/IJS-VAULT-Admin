@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { DB_USER } from "@/_mock/assets_backup";
+// import { DB_USER } from "@/_mock/assets_backup";
 import type { SignInReq } from "@/api/services/userService";
 import { GLOBAL_CONFIG } from "@/global-config";
 import { useSignIn } from "@/store/userStore";
@@ -19,15 +19,15 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 	const { t } = useTranslation();
 	const [loading, setLoading] = useState(false);
 	const [remember, setRemember] = useState(true);
-	const navigatge = useNavigate();
+	const navigate = useNavigate();
 
 	const { loginState } = useLoginStateContext();
 	const signIn = useSignIn();
 
 	const form = useForm<SignInReq>({
 		defaultValues: {
-			username: DB_USER[0].username,
-			password: DB_USER[0].password,
+			email: "admin@ijsvault.com",
+			password: "Admin@123456",
 		},
 	});
 
@@ -36,8 +36,15 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 	const handleFinish = async (values: SignInReq) => {
 		setLoading(true);
 		try {
-			await signIn(values);
-			navigatge(GLOBAL_CONFIG.defaultRoute, { replace: true });
+			// Add device information for real API
+			const loginData = {
+				...values,
+				deviceType: "WEB",
+				deviceName: "Admin Panel",
+				deviceModel: navigator.userAgent.includes("Chrome") ? "Chrome Browser" : "Web Browser",
+			};
+			await signIn(loginData);
+			navigate(GLOBAL_CONFIG.defaultRoute, { replace: true });
 			toast.success(t("sys.login.loginSuccessTitle"), {
 				closeButton: true,
 			});
@@ -57,13 +64,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 
 					<FormField
 						control={form.control}
-						name="username"
-						rules={{ required: t("sys.login.accountPlaceholder") }}
+						name="email"
+						rules={{ required: "Email is required" }}
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>{t("sys.login.userName")}</FormLabel>
+								<FormLabel>Email</FormLabel>
 								<FormControl>
-									<Input placeholder={DB_USER.map((user) => user.username).join("/")} {...field} />
+									<Input type="email" placeholder="admin@ijsvault.com" {...field} />
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -78,7 +85,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 							<FormItem>
 								<FormLabel>{t("sys.login.password")}</FormLabel>
 								<FormControl>
-									<Input type="password" placeholder={DB_USER[0].password} {...field} suppressHydrationWarning />
+									<Input type="password" placeholder="Admin@123456" {...field} suppressHydrationWarning />
 								</FormControl>
 								<FormMessage />
 							</FormItem>

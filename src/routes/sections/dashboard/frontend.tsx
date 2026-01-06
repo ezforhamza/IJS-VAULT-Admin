@@ -75,6 +75,9 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		// Notifications
 		{ path: "notifications", element: Component("/pages/notifications") },
 
+		// Activity Logs
+		{ path: "activity-logs", element: Component("/pages/activity-logs") },
+
 		// Legal Pages
 		{
 			path: "legal",

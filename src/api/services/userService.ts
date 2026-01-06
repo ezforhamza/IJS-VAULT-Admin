@@ -2,20 +2,30 @@ import type { UserInfo, UserToken } from "#/entity";
 import apiClient from "../apiClient";
 
 export interface SignInReq {
-	username: string;
+	email?: string;
+	username?: string;
 	password: string;
+	deviceType?: string;
+	deviceName?: string;
+	deviceModel?: string;
 }
 
 export interface SignUpReq extends SignInReq {
 	email: string;
 }
-export type SignInRes = UserToken & { user: UserInfo };
+export type SignInRes = UserToken & {
+	user: UserInfo;
+	tokens?: {
+		access: { token: string; expires: string };
+		refresh: { token: string; expires: string };
+	};
+};
 
 export enum UserApi {
-	SignIn = "/auth/signin",
-	SignUp = "/auth/signup",
+	SignIn = "/auth/login",
+	SignUp = "/auth/register",
 	Logout = "/auth/logout",
-	Refresh = "/auth/refresh",
+	Refresh = "/auth/refresh-tokens",
 	User = "/user",
 }
 

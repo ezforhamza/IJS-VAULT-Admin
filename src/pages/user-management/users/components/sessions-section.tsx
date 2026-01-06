@@ -8,6 +8,9 @@ import type { UserSession } from "@/types/user-management";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader } from "@/ui/card";
+// import { Skeleton } from "@/ui/skeleton";
+// import { Text, Title } from "@/ui/typography";
+import { formatRelativeTime } from "@/utils/date";
 
 interface SessionsSectionProps {
 	userId: string;
@@ -98,7 +101,9 @@ export function SessionsSection({ userId, sessions }: SessionsSectionProps) {
 											</div>
 											<div className="flex items-center gap-1">
 												<Icon icon="solar:clock-circle-outline" size={14} />
-												<span>Last active: {formatDate(session.lastActivity)}</span>
+												<span title={formatDate(session.lastActivityAt)}>
+													Last active: {formatRelativeTime(session.lastActivityAt)}
+												</span>
 											</div>
 										</div>
 									</div>

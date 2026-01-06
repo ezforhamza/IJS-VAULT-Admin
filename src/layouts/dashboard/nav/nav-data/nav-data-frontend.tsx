@@ -48,6 +48,11 @@ export const frontendNavData: NavProps["data"] = [
 					},
 				],
 			},
+			{
+				title: "Activity Logs",
+				path: "/activity-logs",
+				icon: <Icon icon="solar:history-outline" size="24" />,
+			},
 		],
 	},
 

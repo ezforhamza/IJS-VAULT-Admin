@@ -15,7 +15,7 @@ import { UserFilters } from "./components/user-filters";
 export default function UsersPage() {
 	const filters = useIJSUserFilters();
 	const selectedUserIds = useIJSSelectedUserIds();
-	const { setPage, setPageSize, toggleUserSelection, setSelectedUserIds, clearSelection } = useIJSUserActions();
+	const { setPage, setLimit, toggleUserSelection, setSelectedUserIds, clearSelection } = useIJSUserActions();
 
 	const { data, isLoading } = useUsersList(filters);
 
@@ -70,13 +70,20 @@ export default function UsersPage() {
 						dataSource={data?.users || []}
 						pagination={{
 							current: filters.page,
-							pageSize: filters.pageSize,
+							pageSize: filters.limit,
 							total: data?.total || 0,
 							showSizeChanger: true,
-							showTotal: (total) => `Total ${total} users`,
+							pageSizeOptions: ["10", "20", "50", "100"],
+							showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} users`,
 							onChange: (page, pageSize) => {
 								setPage(page);
-								setPageSize(pageSize);
+								if (pageSize !== filters.limit) {
+									setLimit(pageSize);
+								}
+							},
+							onShowSizeChange: (_current, size) => {
+								setLimit(size);
+								setPage(1);
 							},
 						}}
 						scroll={{ x: 1200 }}
